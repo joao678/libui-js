@@ -1,11 +1,62 @@
-const { libui, window, button, vbox, checkbox, colorButton, combobox, dateTimePicker, datePicker, timePicker, editablecombobox, entry, passwordentry, searchEntry, fontbutton, form, grid, group, label, multilineentry, nonWrappingMultilineentry, progressbar, radiobuttons, verticalSeparator, horizontalSeparator, hbox, slider, spinbox, tab } = require('./libui/index.js');
+const {
+    libui,
+    window,
+    button,
+    vbox,
+    checkbox,
+    colorButton,
+    combobox,
+    dateTimePicker,
+    datePicker,
+    timePicker,
+    editablecombobox,
+    entry,
+    passwordentry,
+    searchEntry,
+    fontbutton,
+    form,
+    grid,
+    group,
+    label,
+    multilineentry,
+    nonWrappingMultilineentry,
+    progressbar,
+    radiobuttons,
+    verticalSeparator,
+    horizontalSeparator,
+    hbox,
+    slider,
+    spinbox,
+    tab,
+    table,
+    tablemodel,
+    image,
+    menu
+} = require('./libui/index.js');
 
 libui.init();
-const win = new window("Teste 123", 640, 480, 0);
+
+const mnu = new menu('teste');
+const item1 = mnu.appendItem('abc');
+mnu.appendQuitItem();
+item1.onMenuItemClicked(function () {
+    console.log('menu teste');
+});
+
+const win = new window("Teste 123", 640, 480, 1);
 win.show();
+
+libui.timer(1000, function () {
+    console.log('1 second timer');
+});
 
 win.onClosing(function () {
     libui.quit();
+    return 1
+});
+
+libui.onShouldQuit(function () {
+    console.log('should quit');
 });
 
 const vbox1 = new vbox();
@@ -53,28 +104,27 @@ f.onChanged(function () {
 
 const h = new editablecombobox();
 h.append('a');
-h.onChanged(function() {
-    //h.append('b')
+h.onChanged(function () {
     console.log(h.text)
 });
 
 const i = new entry();
-i.onChanged(function() {
+i.onChanged(function () {
     console.log(i.text)
 });
 
 const j = new passwordentry();
-j.onChanged(function() {
+j.onChanged(function () {
     console.log(j.text)
 });
 
 const k = new searchEntry();
-k.onChanged(function() {
+k.onChanged(function () {
     console.log(k.text)
 });
 
 const l = new fontbutton();
-l.onChanged(function() {
+l.onChanged(function () {
     console.log(l.font)
 });
 
@@ -106,7 +156,7 @@ t.append('a');
 t.append('b');
 t.append('c');
 
-t.onSelected(function() {
+t.onSelected(function () {
     console.log('radiobuttons selected', t.selected);
 })
 
@@ -119,24 +169,69 @@ v.append(new button('a'), 0, 0, 1, 1, 1, v.uiAlign.uiAlignFill, 1, v.uiAlign.uiA
 v.append(new horizontalSeparator(), 1, 0, 1, 1, 0, v.uiAlign.uiAlignFill, 1, v.uiAlign.uiAlignFill);
 v.append(new button('b'), 2, 0, 1, 1, 1, v.uiAlign.uiAlignFill, 1, v.uiAlign.uiAlignFill);
 
-const w = new slider(0,1000);
-w.onChanged(function() {
+const w = new slider(0, 1000);
+w.onChanged(function () {
     console.log('slider changed', w.value);
 });
 
-w.onReleased(function() {
+w.onReleased(function () {
     console.log('slider released', w.value);
 });
 
-const x = new spinbox(0,1000);
+const x = new spinbox(0, 1000);
 x.value = 50;
-x.onChanged(function() {
+x.onChanged(function () {
     console.log('spinbox changed', x.value);
 });
 
 const y = new tab();
-y.append('a', new button('a'));
+const b1 = new button('a')
+b1.onClicked(function () {
+    libui.msgbox('teste 1', 'teste 2');
+    libui.msgboxError('teste 1', 'teste 2');
+    console.log(libui.openFile(win));
+    console.log(libui.openFolder(win));
+    console.log(libui.saveFile(win));
+});
+
+y.append('a', b1);
 y.append('b', new button('b'));
+
+
+const z = new table([{
+    name: 'a',
+    type: 'text'
+}]);
+
+z.data = [
+    [
+        { value: 'teste1', editable: true, textColor: [0.0, 0.0, 1.0, 1.0] },
+    ],
+    [
+        { value: 'teste2', editable: true, textColor: [0.0, 1.0, 0.0, 1.0] },
+    ],
+    [
+        { value: 'teste3', editable: true },
+    ],
+];
+
+z.rowColors = [
+    [1.0, 0.0, 0.0, 0.4],
+];
+
+z.selectionMode = 3;
+
+z.onRowClicked(function () {
+    z.data = [
+        ...z.data,
+        [{ value: 'new', editable: true }]
+    ]
+    z.selection = {
+        NumRows: 1,
+        Rows: [z.data.length - 1]
+    }
+    console.log(z.selection)
+});
 
 vbox1.append(a, 0);
 vbox1.append(b, 0);
@@ -162,6 +257,7 @@ vbox1.append(v, 0);
 vbox1.append(w, 0);
 vbox1.append(x, 0);
 vbox1.append(y, 0);
+vbox1.append(z, 1);
 
 win.child = vbox1;
 win.margined = 5;

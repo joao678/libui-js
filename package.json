@@ -1,14 +1,21 @@
 {
-  "name": "ffi-test",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "koffi": "^2.9.0"
-  }
+    "name": "ffi-test",
+    "version": "1.0.0",
+    "description": "",
+    "bin": "index.js",
+    "scripts": {
+        "build": "pkg . --compress=Gzip"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "koffi": "^2.9.0",
+        "pngjs": "^7.0.0"
+    },
+    "pkg": {
+        "assets": "./libs/**/*",
+        "targets": [
+            "latest"
+        ]
+    }
 }
