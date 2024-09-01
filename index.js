@@ -197,41 +197,42 @@ b1.onClicked(function () {
 y.append('a', b1);
 y.append('b', new button('b'));
 
+if (process.platform != 'linux') {
+    const z = new table([{
+        name: 'a',
+        type: 'text'
+    }]);
 
-const z = new table([{
-    name: 'a',
-    type: 'text'
-}]);
-
-z.data = [
-    [
-        { value: 'teste1', editable: true, textColor: [0.0, 0.0, 1.0, 1.0] },
-    ],
-    [
-        { value: 'teste2', editable: true, textColor: [0.0, 1.0, 0.0, 1.0] },
-    ],
-    [
-        { value: 'teste3', editable: true },
-    ],
-];
-
-z.rowColors = [
-    [1.0, 0.0, 0.0, 0.4],
-];
-
-z.selectionMode = 3;
-
-z.onRowClicked(function () {
     z.data = [
-        ...z.data,
-        [{ value: 'new', editable: true }]
-    ]
-    z.selection = {
-        NumRows: 1,
-        Rows: [z.data.length - 1]
-    }
-    console.log(z.selection)
-});
+        [
+            { value: 'teste1', editable: true, textColor: [0.0, 0.0, 1.0, 1.0] },
+        ],
+        [
+            { value: 'teste2', editable: true, textColor: [0.0, 1.0, 0.0, 1.0] },
+        ],
+        [
+            { value: 'teste3', editable: true },
+        ],
+    ];
+
+    z.rowColors = [
+        [1.0, 0.0, 0.0, 0.4],
+    ];
+
+    z.selectionMode = 3;
+
+    z.onRowClicked(function () {
+        z.data = [
+            ...z.data,
+            [{ value: 'new', editable: true }]
+        ]
+        z.selection = {
+            NumRows: 1,
+            Rows: [z.data.length - 1]
+        }
+        console.log(z.selection)
+    });
+}
 
 vbox1.append(a, 0);
 vbox1.append(b, 0);
@@ -257,7 +258,7 @@ vbox1.append(v, 0);
 vbox1.append(w, 0);
 vbox1.append(x, 0);
 vbox1.append(y, 0);
-vbox1.append(z, 1);
+if (process.platform != 'linux') vbox1.append(z, 1);
 
 win.child = vbox1;
 win.margined = 5;
