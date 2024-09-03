@@ -99,7 +99,6 @@ class table extends control {
                 return 0;
             }, NumRows),
             CellValue: koffi.register(function (m, mh, row, column) {
-                console.log('CellValue', ...arguments);
                 if (column === 0) {
                     const [r, g, b, a] = me.rowColors[row] || [0, 0, 0, 0];
                     return uiNewTableValueColor(parseFloat(r), parseFloat(g), parseFloat(b), parseFloat(a));
