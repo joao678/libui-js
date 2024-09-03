@@ -99,6 +99,7 @@ class table extends control {
                 return 0;
             }, NumRows),
             CellValue: koffi.register(function (m, mh, row, column) {
+                console.log('CellValue', ...arguments);
                 if (column === 0) {
                     const [r, g, b, a] = me.rowColors[row] || [0, 0, 0, 0];
                     return uiNewTableValueColor(parseFloat(r), parseFloat(g), parseFloat(b), parseFloat(a));
@@ -115,7 +116,7 @@ class table extends control {
                         if (me.columns[columnIndex].controlId === column) return uiNewTableValueImage(me._data[row][columnIndex].value._handle);
                         break;
                     case 'checkbox':
-                        if (me.columns[columnIndex].controlId === column) return uiNewTableValueInt(me._data[row][columnIndex].value);
+                        if (me.columns[columnIndex].controlId === column) return uiNewTableValueInt(me._data[row][columnIndex].value + 0);
                         if (me.columns[columnIndex].controlEditableId === column) return uiNewTableValueInt(me._data[row][columnIndex].editable + 0);
                         break;
                     case 'progressbar':
@@ -320,7 +321,7 @@ class table extends control {
 
     rowColors = [];
     columns = null;
-    _data = null;
+    _data = [];
     tm = null;
 }
 
