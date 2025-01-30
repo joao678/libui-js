@@ -1,58 +1,41 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiMenuItem = koffi.pointer('uiMenuItem', koffi.opaque());
-const uiMenu = koffi.pointer('uiMenu', koffi.opaque());
-
-const uiNewMenu = lib.func('uiMenu* uiNewMenu(const char *name)');
-const uiMenuAppendItem = lib.func('uiMenuItem* uiMenuAppendItem (uiMenu *m, const char *name)');
-const uiMenuAppendCheckItem = lib.func('uiMenuItem* uiMenuAppendCheckItem (uiMenu *m, const char *name)');
-const uiMenuAppendQuitItem = lib.func('uiMenuItem* uiMenuAppendQuitItem (uiMenu *m)');
-const uiMenuAppendPreferencesItem = lib.func('uiMenuItem* uiMenuAppendPreferencesItem (uiMenu *m)');
-const uiMenuAppendAboutItem = lib.func('uiMenuItem* uiMenuAppendAboutItem (uiMenu *m)');
-const uiMenuAppendSeparator = lib.func('void uiMenuAppendSeparator (uiMenu *m)');
-
-const uiMenuItemEnable = lib.func('void uiMenuItemEnable (uiMenuItem *m)')
-const uiMenuItemDisable = lib.func('void uiMenuItemDisable (uiMenuItem *m)')
-const uiMenuItemChecked = lib.func('int uiMenuItemChecked (uiMenuItem *m)')
-const uiMenuItemSetChecked = lib.func('void uiMenuItemSetChecked (uiMenuItem *m, int checked)')
-
-const menuItemClickedCb = koffi.proto('menuItemClickedCb', 'int', ['uiMenu*', 'uiWindow*', 'void *']);
-const uiMenuItemOnClicked = lib.func('void uiMenuItemOnClicked (uiMenuItem *m, menuItemClickedCb* cb, void *data)');
+import { JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiMenuAppendAboutItem, _uiMenuAppendCheckItem, _uiMenuAppendItem, _uiMenuAppendPreferencesItem, _uiMenuAppendQuitItem, _uiMenuAppendSeparator, _uiMenuItemChecked, _uiMenuItemDisable, _uiMenuItemEnable, _uiMenuItemOnClicked, _uiMenuItemSetChecked, _uiNewMenu } from "../lib";
+import { str } from "../util/util";
 
 class menu extends control {
     constructor(name) {
         super();
-        this._handle = uiNewMenu(name);
+        this._handle = _uiNewMenu(str`${name}`);
     }
 
     appendItem(name) {
-        const handle = uiMenuAppendItem(this._handle, name);
+        const handle = _uiMenuAppendItem(this._handle, str`${name}`);
         return new menuitem(handle);
     }
 
     appendCheckItem(name) {
-        const handle = uiMenuAppendCheckItem(this._handle, name);
+        const handle = _uiMenuAppendCheckItem(this._handle, name);
         return new menuitem(handle);
     }
 
     appendQuitItem() {
-        const handle = uiMenuAppendQuitItem(this._handle);
+        const handle = _uiMenuAppendQuitItem(this._handle);
         return new menuitem(handle);
     }
 
     appendAboutItem(name) {
-        const handle = uiMenuAppendAboutItem(this._handle, name);
+        const handle = _uiMenuAppendAboutItem(this._handle, name);
         return new menuitem(handle);
     }    
 
     appendPreferencesItem(name) {
-        const handle = uiMenuAppendPreferencesItem(this._handle, name);
+        const handle = _uiMenuAppendPreferencesItem(this._handle, name);
         return new menuitem(handle);
     }
 
     appendSeparator() {
-        uiMenuAppendSeparator(this._handle);
+        _uiMenuAppendSeparator(this._handle);
     }
 }
 
@@ -63,29 +46,27 @@ class menuitem extends control {
     }
 
     enable() {
-        uiMenuItemEnable(this._handle);
+        _uiMenuItemEnable(this._handle);
     }
 
     disable() {
-        uiMenuItemDisable(this._handle);
+        _uiMenuItemDisable(this._handle);
     }
 
     get checked() {
-        return uiMenuItemChecked(this._handle);
+        return _uiMenuItemChecked(this._handle);
     }
 
     set checked(value) {
-        return uiMenuItemSetChecked(this._handle, value+0);
+        return _uiMenuItemSetChecked(this._handle, value+0);
     }
 
     onMenuItemClicked(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiMenuItemOnClicked(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(menuItemClickedCb));
+        _uiMenuItemOnClicked(this._handle, new JSCallback(function (sender, window, senderData) { return cb(...arguments) }, {
+            returns: "int",
+            args: ["ptr", "ptr", "ptr"]
+        }).ptr, 0);
     }
 }
 
-module.exports = menu;
+export default menu;

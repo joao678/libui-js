@@ -1,35 +1,26 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiEditableCombobox = koffi.pointer('uiEditableCombobox', koffi.opaque());
-
-const uiNewEditableCombobox = lib.func('uiEditableCombobox* uiNewEditableCombobox()');
-const uiEditableComboboxText = lib.func('char* uiEditableComboboxText (uiEditableCombobox *b)');
-const uiEditableComboboxSetText = lib.func('void uiEditableComboboxSetText (uiEditableCombobox *b, const char *text)');
-const uiEditableComboboxAppend = lib.func('void uiEditableComboboxAppend (uiEditableCombobox *c, const char *text)');
-
-const editableComboboxOnChanged = koffi.proto('editableComboboxOnChanged', 'int', ['uiEditableCombobox*', 'void *']);
-const uiEditableComboboxOnChanged = lib.func('void uiEditableComboboxOnChanged (uiEditableCombobox *w, editableComboboxOnChanged *cb, void *data)');
+import { CString, JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiEditableComboboxAppend, _uiEditableComboboxOnChanged, _uiEditableComboboxSetText, _uiEditableComboboxText, _uiNewEditableCombobox } from "../lib";
+import { str } from "../util/util";
 
 class editablecombobox extends control {
     constructor() {
         super();
-        this._handle = uiNewEditableCombobox();
+        this._handle = _uiNewEditableCombobox();
     }
 
-    get text() { return uiEditableComboboxText(this._handle) }
-    set text(value) { uiEditableComboboxSetText(this._handle, value) }
+    get text() { return new CString(_uiEditableComboboxText(this._handle)); }
+    set text(value) { _uiEditableComboboxSetText(this._handle, str`${value}`); }
 
-    append(text) { uiEditableComboboxAppend(this._handle, text) }
-        
+    append(text) { _uiEditableComboboxAppend(this._handle, str`${text}`); }
+
     onChanged(cb) {
-        const _cb = function() {
-            cb(...arguments);
-            return 1;
-        }
-        uiEditableComboboxOnChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(editableComboboxOnChanged));
+        _uiEditableComboboxOnChanged(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
-module.exports = editablecombobox;
+export default editablecombobox;

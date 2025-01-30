@@ -1,35 +1,26 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiRadioButtons = koffi.pointer('uiRadioButtons', koffi.opaque());
-
-const uiRadioButtonsAppend = lib.func('void uiRadioButtonsAppend (uiRadioButtons *r, const char *text)')
-const uiRadioButtonsSelected = lib.func('int uiRadioButtonsSelected (uiRadioButtons *r)')
-const uiRadioButtonsSetSelected = lib.func('void uiRadioButtonsSetSelected (uiRadioButtons *r, int index)')
-const uiNewRadioButtons = lib.func('uiRadioButtons* uiNewRadioButtons (void)')
-
-const radioButtonsSelectedCb = koffi.proto('radioButtonsSelectedCb', 'int', ['uiRadioButtons*', 'void *']);
-const uiRadioButtonsOnSelected = lib.func('void uiRadioButtonsOnSelected (uiRadioButtons *r, radioButtonsSelectedCb *cb, void *data)')
+import { CString, JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiMultilineEntryAppend, _uiMultilineEntryOnChanged, _uiMultilineEntryReadOnly, _uiMultilineEntrySetReadOnly, _uiMultilineEntrySetText, _uiMultilineEntryText, _uiNewMultilineEntry, _uiNewNonWrappingMultilineEntry, _uiNewRadioButtons, _uiRadioButtonsAppend, _uiRadioButtonsOnSelected, _uiRadioButtonsSelected, _uiRadioButtonsSetSelected } from "../lib";
+import { str } from "../util/util";
 
 class radiobuttons extends control {
     constructor() {
         super();
-        this._handle = uiNewRadioButtons();
+        this._handle = _uiNewRadioButtons();
     }
 
-    get selected() { return uiRadioButtonsSelected(this._handle) }
-    set selected(value) { uiRadioButtonsSetSelected(this._handle, value) }
+    get selected() { return _uiRadioButtonsSelected(this._handle) }
+    set selected(value) { _uiRadioButtonsSetSelected(this._handle, value) }
 
-    append(text) { uiRadioButtonsAppend(this._handle, text) }
+    append(text) { _uiRadioButtonsAppend(this._handle, str`${text}`) }
         
     onSelected(cb) {
-        const _cb = function() {
-            cb(...arguments);
-            return 1;
-        }
-        uiRadioButtonsOnSelected(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(radioButtonsSelectedCb));
+        _uiRadioButtonsOnSelected(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
-module.exports = radiobuttons;
+export default radiobuttons;

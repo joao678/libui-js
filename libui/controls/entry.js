@@ -1,18 +1,7 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiEntry = koffi.pointer('uiEntry', koffi.opaque());
-
-const uiNewEntry = lib.func('uiEntry* uiNewEntry()');
-const uiNewPasswordEntry = lib.func('uiEntry* uiNewPasswordEntry (void)')
-const uiNewSearchEntry = lib.func('uiEntry* uiNewSearchEntry (void)')
-const uiEntryText = lib.func('char* uiEntryText (uiEntry *b)');
-const uiEntrySetText = lib.func('void uiEntrySetText (uiEntry *b, const char *text)');
-const uiEntryReadOnly = lib.func('int uiEntryReadOnly (uiEntry *e)');
-const uiEntrySetReadOnly = lib.func('void uiEntrySetReadOnly (uiEntry *e, int readonly)');
-
-const entryOnChanged = koffi.proto('entryOnChanged', 'int', ['uiEntry*', 'void *']);
-const uiEntryOnChanged = lib.func('void uiEntryOnChanged (uiEntry *w, entryOnChanged *cb, void *data)');
+import { CString, JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiEntryOnChanged, _uiEntryReadOnly, _uiEntrySetReadOnly, _uiEntrySetText, _uiEntryText, _uiNewEntry, _uiNewPasswordEntry, _uiNewSearchEntry } from "../lib";
+import { str } from "../util/util";
 
 const entrySymbol = Symbol();
 
@@ -23,22 +12,21 @@ class entry extends control {
     }
 
     [entrySymbol]() {
-        this._handle = uiNewEntry();
+        this._handle = _uiNewEntry();
     }
 
-    get text() { return uiEntryText(this._handle) }
-    set text(value) { uiEntrySetText(this._handle, value) }
+    get text() { return new CString(_uiEntryText(this._handle)); }
+    set text(value) { _uiEntrySetText(this._handle, str`${value}`); }
 
-    get readonly() { return uiEntryReadOnly(this._handle) }
-    set readonly(value) { uiEntrySetReadOnly(this._handle, value+0) }
+    get readonly() { return _uiEntryReadOnly(this._handle) }
+    set readonly(value) { _uiEntrySetReadOnly(this._handle, value) }
 
     onChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiEntryOnChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(entryOnChanged));
+        _uiEntryOnChanged(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
@@ -49,7 +37,7 @@ class passwordentry extends entry {
     }
 
     [entrySymbol]() {
-        this._handle = uiNewPasswordEntry();
+        this._handle = _uiNewPasswordEntry();
     }
 }
 
@@ -60,10 +48,13 @@ class searchEntry extends entry {
     }
 
     [entrySymbol]() {
-        this._handle = uiNewSearchEntry();
+        this._handle = _uiNewSearchEntry();
     }
 }
 
-exports.entry = entry;
-exports.passwordentry = passwordentry;
-exports.searchEntry = searchEntry;
+export {
+    entry,
+    passwordentry,
+    searchEntry
+};
+

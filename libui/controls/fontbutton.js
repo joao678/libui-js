@@ -1,7 +1,9 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
+import { CString, JSCallback, read, ptr } from "bun:ffi";
+import control from "../control";
+import { _uiButtonOnClicked, _uiButtonSetText, _uiButtonText, _uiComboboxAppend, _uiComboboxClear, _uiComboboxDelete, _uiComboboxInsertAt, _uiComboboxNumItems, _uiComboboxOnSelected, _uiComboboxSelected, _uiComboboxSetSelected, _uiFontButtonFont, _uiFontButtonOnChanged, _uiNewButton, _uiNewCombobox, _uiNewFontButton } from "../lib";
+import { str } from "../util/util";
 
-const uiFontDescriptor = koffi.struct('uiFontDescriptor', {
+/* const uiFontDescriptor = koffi.struct('uiFontDescriptor', {
     Family: 'char *',
     Size: 'double',
     Weight: 'int',
@@ -15,12 +17,12 @@ const uiNewFontButton = lib.func('uiFontButton* uiNewFontButton()');
 const uiFontButtonFont = lib.func('void uiFontButtonFont (uiFontButton *b, uiFontDescriptor *desc)');
 
 const fontButtonOnChanged = koffi.proto('fontButtonOnChanged', 'int', ['uiFontButton*', 'void *']);
-const uiFontButtonOnChanged = lib.func('void uiFontButtonOnChanged (uiFontButton *w, fontButtonOnChanged *cb, void *data)');
+const uiFontButtonOnChanged = lib.func('void uiFontButtonOnChanged (uiFontButton *w, fontButtonOnChanged *cb, void *data)'); */
 
 class fontbutton extends control {
     constructor() {
         super();
-        this._handle = uiNewFontButton();
+        this._handle = _uiNewFontButton();
     }
 
     uiTextWeight = {
@@ -58,21 +60,27 @@ class fontbutton extends control {
     }
 
     get font() {
-        let _uiFontDescriptor = koffi.alloc('uiFontDescriptor', 1);
-        uiFontButtonFont(this._handle, _uiFontDescriptor);
-        _uiFontDescriptor = koffi.decode(_uiFontDescriptor, 'uiFontDescriptor');
+        let tm = ptr(new Float64Array(32), 0);
+        _uiFontButtonFont(this._handle, tm);
 
-        return _uiFontDescriptor;
+        let fontInfo = {
+            name: new CString(read.ptr(tm, 0*8)),
+            size: read.f64(tm, 1*8),
+            weight: read.i32(tm, 2*8),
+            italic: read.i32(tm, 3*8),
+            stretch: read.i32(tm, 4*8),
+        }
+        
+        return fontInfo;
     }
 
     onChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiFontButtonOnChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(fontButtonOnChanged));
+        _uiFontButtonOnChanged(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
-exports.fontbutton = fontbutton;
+export default fontbutton;

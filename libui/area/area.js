@@ -1,89 +1,68 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiArea = koffi.pointer('uiArea', koffi.opaque());
-const uiDrawContext = koffi.pointer('uiDrawContext', koffi.opaque());
-
-koffi.struct('uiAreaDrawParams', {
-    /* Context: koffi.struct({
-        cr: 'void*',
-        style: 'void*',
-    }), */
-    Context: 'uiDrawContext*',
-
-    AreaWidth: 'double',
-    AreaHeight: 'double',
-    ClipX: 'double',
-    ClipY: 'double',
-    ClipWidth: 'double',
-    ClipHeight: 'double',
-});
-
-koffi.struct('uiAreaMouseEvent', {
-    X: 'double',
-    Y: 'double',
-    AreaWidth: 'double',
-    AreaHeight: 'double',
-    Down: 'int',
-    Up: 'int',
-    Count: 'int',
-    Modifiers: 'int',
-    Held1To64: 'uint64_t'
-});
-
-koffi.struct('uiAreaKeyEvent', {
-    Key: 'char',
-    ExtKey: 'int',
-    Modifier: 'int',
-    Modifiers: 'int',
-    Up: 'int',
-});
-
-const Draw = koffi.pointer(koffi.proto('void Draw(void*, uiArea*, uiAreaDrawParams*)'));
-const MouseEvent = koffi.pointer(koffi.proto('void MouseEvent(void*, uiArea*, uiAreaMouseEvent*)'));
-const MouseCrossed = koffi.pointer(koffi.proto('void MouseCrossed(void*, uiArea*, int left)'));
-const DragBroken = koffi.pointer(koffi.proto('void DragBroken(void*, uiArea*)'));
-const KeyEvent = koffi.pointer(koffi.proto('int KeyEvent(void*, uiArea*, uiAreaKeyEvent*)'));
-
-const uiAreaHandler = koffi.struct('uiAreaHandler', {
-    Draw: Draw,
-    MouseEvent: MouseEvent,
-    MouseCrossed: MouseCrossed,
-    DragBroken: DragBroken,
-    KeyEvent: KeyEvent
-});
-
-const uiNewArea = lib.func('uiArea *uiNewArea(uiAreaHandler *ah)');
-const uiAreaQueueRedrawAll = lib.func('void uiAreaQueueRedrawAll(uiArea *a)');
-const uiAreaSetSize = lib.func('void uiAreaSetSize(uiArea *a, int width, int height)');
-
-/* const buttonClickedCb = koffi.proto('buttonClickedCb', 'int', ['uiButton*', 'void *']);
-const uiButtonOnClicked = lib.func('void uiButtonOnClicked (uiButton *w, buttonClickedCb *cb, void *data)'); */
+import { CString, JSCallback, ptr, read } from "bun:ffi";
+import control from "../control";
+import { _uiNewArea, _uiNewTable, _uiNewTableModel, _uiNewTableValueColor, _uiNewTableValueImage, _uiNewTableValueInt, _uiNewTableValueString, _uiTableAppendButtonColumn, _uiTableAppendCheckboxColumn, _uiTableAppendCheckboxTextColumn, _uiTableAppendImageColumn, _uiTableAppendImageTextColumn, _uiTableAppendProgressBarColumn, _uiTableAppendTextColumn, _uiTableColumnSetWidth, _uiTableGetSelection, _uiTableGetSelectionMode, _uiTableHeaderOnClicked, _uiTableHeaderSetSortIndicator, _uiTableHeaderSetVisible, _uiTableHeaderSortIndicator, _uiTableHeaderVisible, _uiTableModelRowDeleted, _uiTableModelRowInserted, _uiTableOnRowClicked, _uiTableOnRowDoubleClicked, _uiTableOnSelectionChanged, _uiTableSetSelection, _uiTableSetSelectionMode, _uiTableValueInt, _uiTableValueString } from "../lib";
+import { str } from "../util/util";
 
 class area extends control {
-    constructor(areaHandler) {
+    constructor(draw, mouseEvent, mouseCrossed, dragBroken, keyEvent) {
         super();
 
-        const ah = {
-            Draw: koffi.register(function (handler, a, dp) {
-                areaHandler.Draw(a, koffi.decode(dp, 'uiAreaDrawParams'));
-                return 0
-            }, Draw),
-            MouseEvent: koffi.register(function () {
-                areaHandler.MouseEvent(...arguments);
-            }, MouseEvent),
-            MouseCrossed: koffi.register(function () {
-                areaHandler.MouseCrossed(...arguments);
-            }, MouseCrossed),
-            DragBroken: koffi.register(function () {
-                areaHandler.DragBroken(...arguments);
-            }, DragBroken),
-            KeyEvent: koffi.register(function () {
-                return areaHandler.KeyEvent(...arguments);
-            }, KeyEvent),
-        };
+        this._areaHandler = BigUint64Array.from([
+            //Draw
+            BigInt(new JSCallback(function (handler, area, params) {
+                /* let drawParams = {
+                    context: read.ptr(params, 0*8),
+                    areaWidth: read.f64(params, 1*8),
+                    areaHeight: read.f64(params, 2*8),
+                    clipWidth: read.f64(params, 3*8),
+                    clipHeight: read.f64(params, 4*8),
+                }
+                draw(drawParams); */
+                draw(params);
+                console.log("draw");
+            }, {
+                args: ["ptr", "ptr", "ptr"],
+                returns: "void",
+                threadsafe: false
+            }).ptr),
+            //MouseEvent
+            BigInt(new JSCallback(function (tableModelHandler, tableModel, column) {
+                //console.log("mouseEvent");
+            }, {
+                args: ["ptr", "ptr", "ptr"],
+                returns: "void",
+                threadsafe: false
+            }).ptr),
+            //MouseCrossed
+            BigInt(new JSCallback(function (tableModelHandler, tableModel) {
+                //console.log("MouseCrossed");
+            }, {
+                args: ["ptr", "ptr", "i32"],
+                returns: "void",
+                threadsafe: false
+            }).ptr),
+            //DragBroken
+            BigInt(new JSCallback(function (tableModelHandler, tableModel, row, column) {
+                //console.log("DragBroken");
+            }, {
+                args: ["ptr", "ptr"],
+                returns: "i32",
+                threadsafe: false
+            }).ptr),
+            //KeyEvent
+            BigInt(new JSCallback(function (m, mh, row, column, value) {
+                return keyEvent(...arguments);
+            }, {
+                args: ["ptr", "ptr", "ptr"],
+                returns: "i32",
+                threadsafe: false
+            }).ptr)
+        ]);
 
-        this._handle = uiNewArea(ah);
+        /* this._tableModel = _uiNewTableModel(ptr(this._areaHandler));
+        let tableParams = ptr(new BigUint64Array([BigInt(this._tableModel), BigInt(0)])); */
+
+        this._handle = _uiNewArea(ptr(this._areaHandler));
     }
 
     setSize(width, height) {
@@ -107,4 +86,4 @@ class area extends control {
     } */
 }
 
-module.exports = area;
+export default area;

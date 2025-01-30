@@ -1,7 +1,8 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
+import control from "../control";
+import { _uiDateTimePickerOnChanged, _uiDateTimePickerSetTime, _uiDateTimePickerTime, _uiNewDatePicker, _uiNewDateTimePicker, _uiNewTimePicker } from "../lib";
+import { CString, JSCallback, read, ptr, FFIType } from "bun:ffi";
 
-const tm = koffi.struct('tm', {
+/*tm = {
     tm_sec: 'int',   // seconds after the minute - [0, 60] including leap second
     tm_min: 'int',   // minutes after the hour - [0, 59]
     tm_hour: 'int',  // hours since midnight - [0, 23]
@@ -11,18 +12,8 @@ const tm = koffi.struct('tm', {
     tm_wday: 'int',  // days since Sunday - [0, 6]
     tm_yday: 'int',  // days since January 1 - [0, 365]
     tm_isdst: 'int', // daylight savings time flag
-});
-
-const uiDateTimePicker = koffi.pointer('uiDateTimePicker', koffi.opaque());
-
-const uiNewDateTimePicker = lib.func('uiDateTimePicker* uiNewDateTimePicker(void)');
-const uiNewDatePicker = lib.func('uiDateTimePicker* uiNewDatePicker(void)');
-const uiNewTimePicker = lib.func('uiDateTimePicker* uiNewTimePicker(void)');
-const uiDateTimePickerTime = lib.func('void uiDateTimePickerTime (uiDateTimePicker *d, tm *time)');
-const uiDateTimePickerSetTime = lib.func('void uiDateTimePickerSetTime (uiDateTimePicker *d, const tm *time)');
-
-const dateTimePickerOnChangedCb = koffi.proto('dateTimePickerOnChangedCb', 'int', ['uiDateTimePicker*', 'void *']);
-const uiDateTimePickerOnChanged = lib.func('void uiDateTimePickerOnChanged (uiDateTimePicker *w, dateTimePickerOnChangedCb *cb, void *data)');
+}
+*/
 
 const dateTimePickerSymbol = Symbol();
 
@@ -33,60 +24,53 @@ class dateTimePicker extends control {
     }
 
     [dateTimePickerSymbol]() {
-        this._handle = uiNewDateTimePicker();
+        this._handle = _uiNewDateTimePicker();
     }
 
-    get time() {
-        let _tm = koffi.alloc('tm', 1);
-        uiDateTimePickerTime(this._handle, _tm);
-        _tm = koffi.decode(_tm, 'tm');
+     get time() {
+        let tm = ptr(new Int32Array(9), 0);
+        _uiDateTimePickerTime(this._handle, tm);
 
         const tempDate = new Date();
-        tempDate.setSeconds(_tm.tm_sec);
-        tempDate.setMinutes(_tm.tm_min);
-        tempDate.setHours(_tm.tm_hour);
-        tempDate.setDate(_tm.tm_mday);
-        tempDate.setMonth(_tm.tm_mon);
-        tempDate.setFullYear(1900 + _tm.tm_year);
+        
+        tempDate.setSeconds(read.i32(tm, 0*4));
+        tempDate.setMinutes(read.i32(tm, 1*4));
+        tempDate.setHours(read.i32(tm, 2*4));
+        tempDate.setDate(read.i32(tm, 3*4));
+        tempDate.setMonth(read.i32(tm, 4*4));
+        tempDate.setFullYear(1900 + read.i32(tm, 5*4));
 
         return tempDate;
     }
 
     set time(newDate) {
-        const _tm = {
-            tm_sec: newDate.getSeconds(),
-            tm_min: newDate.getMinutes(),
-            tm_hour: newDate.getHours(),
-            tm_mday: newDate.getDate(),
-            tm_mon: newDate.getMonth(),
-            tm_year: newDate.getFullYear() - 1900,
-            tm_isdst: -1,
-        }
-        uiDateTimePickerSetTime(this._handle, _tm)
+        let tm = ptr(Int32Array.from([newDate.getSeconds(), newDate.getMinutes(), newDate.getHours(), newDate.getDate(), newDate.getMonth(), newDate.getFullYear() - 1900]), 0);
+        _uiDateTimePickerSetTime(this._handle, tm);
     }
 
     onChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiDateTimePickerOnChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(dateTimePickerOnChangedCb));
+        _uiDateTimePickerOnChanged(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
 class datePicker extends dateTimePicker {
     [dateTimePickerSymbol]() {
-        this._handle = uiNewDatePicker();
+        this._handle = _uiNewDatePicker();
     }
 }
 
 class timePicker extends dateTimePicker {
     [dateTimePickerSymbol]() {
-        this._handle = uiNewTimePicker();
+        this._handle = _uiNewTimePicker();
     }
 }
 
-exports.dateTimePicker = dateTimePicker;
-exports.datePicker = datePicker;
-exports.timePicker = timePicker;
+export {
+    dateTimePicker,
+    datePicker,
+    timePicker
+}

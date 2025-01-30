@@ -1,38 +1,37 @@
-const { lib, koffi } = require("./lib");
-
-const uiControl = koffi.opaque('uiControl');
-const uiControlDestroy = lib.func('void uiControlDestroy (uiControl *c)');
-const uiControlHandle = lib.func('uintptr_t uiControlHandle (uiControl *c)');
-const uiControlParent = lib.func('uiControl* uiControlParent (uiControl *c)');
-const uiControlSetParent = lib.func('void uiControlSetParent (uiControl *c, uiControl *parent)');
-const uiControlToplevel = lib.func('int uiControlToplevel (uiControl *c)');
-const uiControlVisible = lib.func('int uiControlVisible (uiControl *c)');
-const uiControlShow = lib.func('void uiControlShow(uiControl *c)');
-const uiControlHide = lib.func('void uiControlHide (uiControl *c)');
-const uiControlEnabled = lib.func('int uiControlEnabled (uiControl *c)');
-const uiControlEnable = lib.func('void uiControlEnable (uiControl *c)');
-const uiControlDisable = lib.func('void uiControlDisable (uiControl *c)');
-const uiFreeControl = lib.func('void uiFreeControl (uiControl *c)');
-const uiControlVerifySetParent = lib.func('void uiControlVerifySetParent (uiControl *c, uiControl *parent)');
-const uiControlEnabledToUser = lib.func('int uiControlEnabledToUser (uiControl *c)');
+import {
+    _uiControlDestroy,
+    _uiControlDisable,
+    _uiControlEnable,
+    _uiControlEnabled,
+    _uiControlEnabledToUser,
+    _uiControlHandle,
+    _uiControlHide,
+    _uiControlParent,
+    _uiControlSetParent,
+    _uiControlShow,
+    _uiControlToplevel,
+    _uiControlVerifySetParent,
+    _uiControlVisible,
+    _uiFreeControl
+} from "./lib.js";
 
 class control {
     _handle = null;
 
-    get nativeHandle() { return uiControlHandle(koffi.as(this._handle, 'void*')) }
-    get parent() { uiControlParent(koffi.as(this._handle, 'void*')) }
-    set parent(ctrl) { uiControlSetParent(koffi.as(ctrl._handle, 'void*'), koffi.as(this._handle, 'void*')) }
-    get toplevel() { uiControlToplevel(koffi.as(this._handle, 'void*')) }
-    get visible() { uiControlVisible(koffi.as(this._handle, 'void*')) }
-    get enabled() { uiControlEnabled(koffi.as(this._handle, 'void*')) }
-    get enabledToUser() { uiControlEnabledToUser(koffi.as(this._handle, 'void*')) }
-    destroy() { uiControlDestroy(koffi.as(this._handle, 'void*')) }
-    show() { uiControlShow(koffi.as(this._handle, 'void*')) }
-    hide() { uiControlHide(koffi.as(this._handle, 'void*')) }
-    enable() { uiControlEnable(koffi.as(this._handle, 'void*')) }
-    disable() { uiControlDisable(koffi.as(this._handle, 'void*')) }
-    free() { uiFreeControl(koffi.as(this._handle, 'void*')) }
-    verifySetParent() { uiControlVerifySetParent(koffi.as(ctrl._handle, 'void*'), koffi.as(this._handle, 'void*')) }
+    get nativeHandle() { return _uiControlHandle(this._handle) }
+    get parent() { _uiControlParent(this._handle) }
+    set parent(ctrl) { _uiControlSetParent(ctrl._handle, this._handle) }
+    get toplevel() { _uiControlToplevel(this._handle) }
+    get visible() { _uiControlVisible(this._handle) }
+    get enabled() { _uiControlEnabled(this._handle) }
+    get enabledToUser() { _uiControlEnabledToUser(this._handle) }
+    destroy() { _uiControlDestroy(this._handle) }
+    show() { _uiControlShow(this._handle) }
+    hide() { _uiControlHide(this._handle) }
+    enable() { _uiControlEnable(this._handle) }
+    disable() { _uiControlDisable(this._handle) }
+    free() { _uiFreeControl(this._handle) }
+    verifySetParent() { _uiControlVerifySetParent(ctrl._handle, this._handle) }
 }
 
-module.exports = control;
+export default control;

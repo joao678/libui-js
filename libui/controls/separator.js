@@ -1,24 +1,22 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiSeparator = koffi.pointer('uiSeparator', koffi.opaque());
-
-const uiNewHorizontalSeparator = lib.func('uiSeparator* uiNewHorizontalSeparator (void)');
-const uiNewVerticalSeparator = lib.func('uiSeparator* uiNewVerticalSeparator (void)');
+import control from "../control";
+import { _uiNewHorizontalSeparator, _uiNewVerticalSeparator } from "../lib";
 
 class horizontalSeparator extends control {
     constructor() {
         super();
-        this._handle = uiNewHorizontalSeparator();
+        this._handle = _uiNewHorizontalSeparator();
     }
 }
 
 class verticalSeparator extends control {
     constructor() {
         super();
-        this._handle = uiNewVerticalSeparator();
+        this._handle = _uiNewVerticalSeparator();
     }
 }
 
-exports.horizontalSeparator = horizontalSeparator;
-exports.verticalSeparator = verticalSeparator;
+export {
+    horizontalSeparator,
+    verticalSeparator
+};
+

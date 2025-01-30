@@ -1,20 +1,14 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiProgressBar = koffi.pointer('uiProgressBar', koffi.opaque());
-
-const uiProgressBarValue = lib.func('char* uiProgressBarValue (uiProgressBar *l)')
-const uiProgressBarSetValue = lib.func('void uiProgressBarSetValue (uiProgressBar *l, int n)')
-const uiNewProgressBar = lib.func('uiProgressBar* uiNewProgressBar(void)')
+import control from "../control";
+import { _uiNewProgressBar, _uiProgressBarSetValue, _uiProgressBarValue } from "../lib";
 
 class progressbar extends control {
     constructor() {
         super();
-        this._handle = uiNewProgressBar();
+        this._handle = _uiNewProgressBar();
     }
 
-    get value() { return uiProgressBarValue(this._handle) }
-    set value(value) { uiProgressBarSetValue(this._handle, value) }
+    get value() { return _uiProgressBarValue(this._handle) }
+    set value(value) { _uiProgressBarSetValue(this._handle, value) }
 }
 
-module.exports = progressbar;
+export default progressbar;

@@ -1,79 +1,67 @@
-const {
-    libui,
-    window,
-    button,
-    vbox,
-    checkbox,
-    colorButton,
-    combobox,
-    dateTimePicker,
-    datePicker,
-    timePicker,
-    editablecombobox,
-    entry,
-    passwordentry,
-    searchEntry,
-    fontbutton,
-    form,
-    grid,
-    group,
-    label,
-    multilineentry,
-    nonWrappingMultilineentry,
-    progressbar,
-    radiobuttons,
-    verticalSeparator,
-    horizontalSeparator,
-    hbox,
-    slider,
-    spinbox,
-    tab,
-    table,
-    tablemodel,
-    image,
-    menu
-} = require('./libui/index.js');
+import { button, checkbox, colorButton, combobox, datePicker, dateTimePicker, editablecombobox, entry, fontbutton, form, grid, group, horizontalSeparator, label, libui, menu, multilineentry, nonWrappingMultilineentry, passwordentry, progressbar, radiobuttons, searchEntry, slider, spinbox, tab, table, timePicker, vbox, verticalSeparator, window } from './libui/index.js';
 
 libui.init();
 
-const mnu = new menu('teste');
-const item1 = mnu.appendItem('abc');
+const mnu = new menu('test');
+const item1 = mnu.appendItem('test item');
 mnu.appendQuitItem();
 item1.onMenuItemClicked(function () {
-    console.log('menu teste');
+    console.log('menu test');
 });
 
-const win = new window("Teste 123", 640, 480, 1);
+const win = new window("Controls test", 640, 480, 1);
 win.show();
 
 libui.timer(1000, function () {
     console.log('1 second timer');
+    return 1;
 });
 
 win.onClosing(function () {
     libui.quit();
-    return 1
+    return 1;
+});
+
+win.onPositionChanged(function () {
+    console.log('position changed');
+});
+
+win.onContentSizeChanged(function () {
+    console.log('content size changed');
+});
+
+win.onFocusChanged(function () {
+    console.log('focus changed');
 });
 
 libui.onShouldQuit(function () {
     console.log('should quit');
+    return 1;
 });
 
 const vbox1 = new vbox();
 
 const a = new checkbox('checkbox');
 a.onToggled(function () {
+    win.resizeable = a.checked;
     console.log('checkbox toggled', a.checked);
-});
+})
 
 const b = new colorButton();
+b.color = {
+    r: 255,
+    g: 0,
+    b: 0,
+    a: 1
+};
 b.onChanged(function () {
     console.log('colorbutton changed', b.color);
 });
 
-const c = new button('button');
+const c = new button('');
+c.text = 'teste 123'
 c.onClicked(function () {
-    console.log('button clicked');
+    console.log('button clicked', c.text);
 });
 
 const d = new combobox();
@@ -99,7 +87,11 @@ e.onChanged(function () {
 });
 
 f.onChanged(function () {
-    console.log('changed');
+    console.log(f.time);
+});
+
+g.onChanged(function () {
+    console.log(g.time);
 });
 
 const h = new editablecombobox();
@@ -170,6 +162,7 @@ v.append(new horizontalSeparator(), 1, 0, 1, 1, 0, v.uiAlign.uiAlignFill, 1, v.u
 v.append(new button('b'), 2, 0, 1, 1, 1, v.uiAlign.uiAlignFill, 1, v.uiAlign.uiAlignFill);
 
 const w = new slider(0, 1000);
+w.hasTooltip = true;
 w.onChanged(function () {
     console.log('slider changed', w.value);
 });
@@ -197,42 +190,41 @@ b1.onClicked(function () {
 y.append('a', b1);
 y.append('b', new button('b'));
 
-if (process.platform != 'linux') {
-    const z = new table([{
-        name: 'a',
-        type: 'text'
-    }]);
+const z = new table([{
+    name: 'a',
+    type: 'text'
+}]);
 
+z.data = [
+    [
+        { value: 'teste1', editable: true, textColor: [0.0, 1.0, 0.0, 1.0] },
+    ],
+    [
+        { value: 'teste2', editable: true, textColor: [1.0, 0.0, 0.0, 1.0] },
+    ],
+    [
+        { value: 'teste3', editable: true, textColor: [0.0, 1.0, 0.0, 1.0] },
+    ],
+];
+
+z.rowColors = [
+    [1.0, 0.0, 0.0, 0.2],
+    [0.0, 1.0, 0.0, 0.2],
+    [0.0, 0.0, 1.0, 0.2],
+];
+
+z.selectionMode = 3;
+
+z.selection = [0];
+
+z.onRowClicked(function () {
     z.data = [
-        [
-            { value: 'teste1', editable: true, textColor: [0.0, 0.0, 1.0, 1.0] },
-        ],
-        [
-            { value: 'teste2', editable: true, textColor: [0.0, 1.0, 0.0, 1.0] },
-        ],
-        [
-            { value: 'teste3', editable: true },
-        ],
-    ];
-
-    z.rowColors = [
-        [1.0, 0.0, 0.0, 0.4],
-    ];
-
-    z.selectionMode = 3;
-
-    z.onRowClicked(function () {
-        z.data = [
-            ...z.data,
-            [{ value: 'new', editable: true }]
-        ]
-        z.selection = {
-            NumRows: 1,
-            Rows: [z.data.length - 1]
-        }
-        console.log(z.selection)
-    });
-}
+        ...z.data,
+        [{ value: 'new', editable: true }]
+    ]
+    z.selection = [z.data.length - 1]
+    console.log(z.selection);
+});
 
 vbox1.append(a, 0);
 vbox1.append(b, 0);
@@ -244,6 +236,7 @@ vbox1.append(g, 0);
 vbox1.append(h, 0);
 vbox1.append(i, 0);
 vbox1.append(j, 0);
+vbox1.append(k, 0);
 vbox1.append(l, 0);
 vbox1.append(m, 0);
 vbox1.append(n, 0);
@@ -258,7 +251,7 @@ vbox1.append(v, 0);
 vbox1.append(w, 0);
 vbox1.append(x, 0);
 vbox1.append(y, 0);
-if (process.platform != 'linux') vbox1.append(z, 1);
+vbox1.append(z, 1);
 
 win.child = vbox1;
 win.margined = 5;

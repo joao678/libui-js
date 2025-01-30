@@ -1,39 +1,30 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiColorButton = koffi.pointer('uiColorButton', koffi.opaque());
-
-const uiNewColorButton = lib.func('uiColorButton* uiNewColorButton(void)');
-const uiColorButtonColor = lib.func('void uiColorButtonColor (uiColorButton *b, double *r, double *g, double *bl, double *a)');
-const uiColorButtonSetColor = lib.func('void uiColorButtonSetColor (uiColorButton *b, double r, double g, double bl, double a)');
-
-const colorButtonOnChangedCb = koffi.proto('colorButtonOnChangedCb', 'int', ['uiColorButton*', 'void *']);
-const uiColorButtonOnChanged = lib.func('void uiColorButtonOnChanged (uiColorButton *w, colorButtonOnChangedCb *cb, void *data)');
+import control from "../control";
+import { _uiColorButtonColor, _uiColorButtonOnChanged, _uiColorButtonSetColor, _uiMenuItemOnClicked, _uiNewColorButton } from "../lib";
+import { cc, FFIType, JSCallback, CString, ptr, read } from "bun:ffi";
 
 class colorButton extends control {
     constructor() {
         super();
-        this._handle = uiNewColorButton();
+        this._handle = _uiNewColorButton();
     }
 
     get color() {
-        let r = koffi.alloc('double', 1);
-        let g = koffi.alloc('double', 1);
-        let b = koffi.alloc('double', 1);
-        let a = koffi.alloc('double', 1);
-        uiColorButtonColor(this._handle, r, g, b, a);
-        return [koffi.decode(r, 'double'), koffi.decode(g, 'double'), koffi.decode(b, 'double'), koffi.decode(a, 'double')]
+        let r = ptr(new Float64Array(1), 0);
+        let g = ptr(new Float64Array(1), 0);
+        let b = ptr(new Float64Array(1), 0);
+        let a = ptr(new Float64Array(1), 0);
+        _uiColorButtonColor(this._handle, r, g, b, a);
+        return [read.f64(r, 0), read.f64(g, 0), read.f64(b, 0), read.f64(a, 0)]
     }
-    set color({ r, g, b, a }) { uiColorButtonSetColor(this._handle, r, g, b, a) }
+
+    set color({ r, g, b, a }) { _uiColorButtonSetColor(this._handle, Math.fround(r), Math.fround(g), Math.fround(b), Math.fround(a)) }
 
     onChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiColorButtonOnChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(colorButtonOnChangedCb));
+        _uiColorButtonOnChanged(this._handle, new JSCallback(function (sender, senderData) { return cb(...arguments) }, {
+            returns: "void",
+            args: ["ptr", "ptr"]
+        }).ptr, 0);
     }
 }
 
-module.exports = colorButton;
+export default colorButton;

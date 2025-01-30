@@ -1,38 +1,30 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiTab = koffi.pointer('uiTab', koffi.opaque());
-
-const uiTabAppend = lib.func('void uiTabAppend (uiTab *t, const char *name, uiControl *c)');
-const uiTabInsertAt = lib.func('void uiTabInsertAt (uiTab *t, const char *name, int index, uiControl *c)');
-const uiTabDelete = lib.func('void uiTabDelete (uiTab *t, int index)');
-const uiTabNumPages = lib.func('int uiTabNumPages (uiTab *t)');
-const uiTabMargined = lib.func('int uiTabMargined (uiTab *t, int index)');
-const uiTabSetMargined = lib.func('void uiTabSetMargined (uiTab *t, int index, int margined)');
-const uiNewTab = lib.func('uiTab * uiNewTab (void)');
+import { CString, JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiMultilineEntryAppend, _uiMultilineEntryOnChanged, _uiMultilineEntryReadOnly, _uiMultilineEntrySetReadOnly, _uiMultilineEntrySetText, _uiMultilineEntryText, _uiNewMultilineEntry, _uiNewNonWrappingMultilineEntry, _uiNewRadioButtons, _uiNewSlider, _uiNewSpinbox, _uiNewTab, _uiRadioButtonsAppend, _uiRadioButtonsOnSelected, _uiRadioButtonsSelected, _uiRadioButtonsSetSelected, _uiSliderHasToolTip, _uiSliderOnChanged, _uiSliderOnReleased, _uiSliderSetHasToolTip, _uiSliderSetRange, _uiSliderSetValue, _uiSliderValue, _uiSpinboxOnChanged, _uiSpinboxSetValue, _uiSpinboxValue, _uiTabAppend, _uiTabDelete, _uiTabInsertAt, _uiTabMargined, _uiTabNumPages, _uiTabSetMargined } from "../lib";
+import { str } from "../util/util";
 
 class tab extends control {
     constructor() {
         super();
-        this._handle = uiNewTab();
+        this._handle = _uiNewTab();
     }
 
-    get numPages() { return uiTabNumPages(this._handle) }
+    get numPages() { return _uiTabNumPages(this._handle) }
 
-    get margined() { return uiTabMargined(this._handle) }
-    set margined(value) { return uiTabSetMargined(this._handle, value + 0) }
+    getMargined(index) { return _uiTabMargined(this._handle, index) }
+    setMargined(index, value) { return _uiTabSetMargined(this._handle, index, value) }
 
     append(title, ctrl) {
-        uiTabAppend(this._handle, title, koffi.as(ctrl._handle, 'void*'));
+        _uiTabAppend(this._handle, str`${title}`, ctrl._handle);
     }
 
     insertAt(title, index, ctrl) {
-        uiTabInsertAt(this._handle, title, index, koffi.as(ctrl._handle, 'void*'));
+        _uiTabInsertAt(this._handle, str`${title}`, index, ctrl._handle);
     }
 
     delete(index) {
-        uiTabDelete(this._handle, index);
+        _uiTabDelete(this._handle, index);
     }
 }
 
-module.exports = tab;
+export default tab;

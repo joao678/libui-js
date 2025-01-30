@@ -1,114 +1,103 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiWindow = koffi.pointer('uiWindow', koffi.opaque());
-
-const uiNewWindow = lib.func('uiWindow* uiNewWindow(const char *title, int width, int height, int hasMenubar)');
-const uiWindowTitle = lib.func('char *uiWindowTitle(uiWindow *w)');
-const uiWindowSetTitle = lib.func('void uiWindowSetTitle(uiWindow *w, const char *title)');
-const uiWindowPosition = lib.func('void uiWindowPosition (uiWindow *w, _Out_ int *x, _Out_ int *y)');
-const uiWindowSetPosition = lib.func('void uiWindowSetPosition (uiWindow *w, int x, int y)');
-const uiWindowContentSize = lib.func('void uiWindowContentSize (uiWindow *w, _Out_ int *width, _Out_ int *height)');
-const uiWindowSetContentSize = lib.func('void uiWindowSetContentSize (uiWindow *w, int width, int height)');
-const uiWindowFullscreen = lib.func('int uiWindowFullscreen (int *w)');
-const uiWindowSetFullscreen = lib.func('void uiWindowSetFullscreen (uiWindow *w, int fullscreen)');
-const uiWindowFocused = lib.func('int uiWindowFocused (int *w)');
-const uiWindowBorderless = lib.func('int uiWindowBorderless (int *w)');
-const uiWindowSetBorderless = lib.func('void uiWindowSetBorderless (uiWindow *w, int borderless)');
-const uiWindowSetChild = lib.func('void uiWindowSetChild (uiWindow *w, int *child)');
-const uiWindowMargined = lib.func('int uiWindowMargined (int *w)');
-const uiWindowSetMargined = lib.func('void uiWindowSetMargined (uiWindow *w, int margined)');
-const uiWindowResizeable = lib.func('int uiWindowResizeable (uiWindow *w)');
-const uiWindowSetResizeable = lib.func('void uiWindowSetResizeable (uiWindow *w, int resizeable)');
-
-const windowPositionChangedCb = koffi.proto('windowPositionChangedCb', 'int', ['uiWindow*', 'void *']);
-const uiWindowOnPositionChanged = lib.func('void uiWindowOnPositionChanged (uiWindow *w, windowPositionChangedCb *cb, void *data)');
-const windowContentSizeChangedCb = koffi.proto('windowContentSizeChangedCb', 'int', ['uiWindow*', 'void *']);
-const uiWindowOnContentSizeChanged = lib.func('void uiWindowOnContentSizeChanged (uiWindow *w, windowContentSizeChangedCb *cb, void *data)');
-const windowClosingCb = koffi.proto('windowClosingCb', 'int', ['uiWindow*', 'void *']);
-const uiWindowOnClosing = lib.func('void uiWindowOnClosing (uiWindow *w, windowClosingCb *cb, void *data)');
-const windowFocusChangedCb = koffi.proto('windowFocusChangedCb', 'int', ['uiWindow*', 'void *']);
-const uiWindowOnFocusChanged = lib.func('void uiWindowOnFocusChanged (uiWindow *w, windowFocusChangedCb *cb, void *data)');
+import control from "../control.js";
+import {
+    _uiNewWindow,
+    _uiWindowBorderless,
+    _uiWindowContentSize,
+    _uiWindowFocused,
+    _uiWindowFullscreen,
+    _uiWindowMargined,
+    _uiWindowOnClosing,
+    _uiWindowOnContentSizeChanged,
+    _uiWindowOnFocusChanged,
+    _uiWindowOnPositionChanged,
+    _uiWindowPosition,
+    _uiWindowResizeable,
+    _uiWindowSetBorderless,
+    _uiWindowSetChild,
+    _uiWindowSetContentSize,
+    _uiWindowSetFullscreen,
+    _uiWindowSetMargined,
+    _uiWindowSetPosition,
+    _uiWindowSetResizeable,
+    _uiWindowSetTitle,
+    _uiWindowTitle
+} from "../lib";
+import { str } from "../util/util.js";
+import { cc, FFIType, JSCallback, CString, ptr, read } from "bun:ffi";
 
 class window extends control {
     constructor(title, width, height, hasMenubar) {
         super();
-        this._handle = uiNewWindow(title, width, height, hasMenubar);
+        this._handle = _uiNewWindow(str`${title}`, width, height, hasMenubar);
     }
 
-    get title() { return uiWindowTitle(this._handle) }
-    set title(value) { uiWindowSetTitle(this._handle, value) }
+    get title() { return new CString(_uiWindowTitle(this._handle)) }
+    set title(value) { _uiWindowSetTitle(this._handle, str`${value}`) }
 
     get position() {
-        let x = koffi.alloc('int', 1);
-        let y = koffi.alloc('int', 1);
-        uiWindowPosition(this._handle, x, y);
-        return [koffi.decode(x, 'int'), koffi.decode(y, 'int')]
+        let x = ptr(new Int32Array(1), 0);
+        let y = ptr(new Int32Array(1), 0);
+        _uiWindowPosition(this._handle, x, y);
+        return [read.i32(x, 0), read.i32(y, 0)];
     }
-    set position({ x, y }) { uiWindowSetPosition(this._handle, x, y) }
+    set position({ x, y }) { _uiWindowSetPosition(this._handle, x, y) }
 
     get contentSize() {
-        let width = koffi.alloc('int', 1);
-        let height = koffi.alloc('int', 1);
-        uiWindowContentSize(this._handle, width, height);
-        return [koffi.decode(width, 'int'), koffi.decode(height, 'int')];
+        let width = ptr(new Int32Array(1), 0);
+        let height = ptr(new Int32Array(1), 0);
+        _uiWindowContentSize(this._handle, width, height);
+        return [read.i32(width, 0), read.i32(height, 0)];
     }
 
-    set contentSize({ width, height }) { uiWindowSetContentSize(this._handle, width, height) }
+    set contentSize({ width, height }) { _uiWindowSetContentSize(this._handle, width, height) }
 
-    get fullscreen() { return uiWindowFullscreen(this._handle) }
-    set fullscreen(value) {
-        uiWindowSetFullscreen(this._handle, value + 0);
-    }
+    get fullscreen() { return _uiWindowFullscreen(this._handle) }
+    set fullscreen(value) { _uiWindowSetFullscreen(this._handle, value); }
 
-    get focused() { return uiWindowFocused(this._handle) }
+    get focused() { return _uiWindowFocused(this._handle) }
 
-    get borderless() { return uiWindowBorderless(this._handle) }
-    set borderless(value) { uiWindowSetBorderless(this._handle, value + 0) }
+    get borderless() { return _uiWindowBorderless(this._handle) }
+    set borderless(value) { _uiWindowSetBorderless(this._handle, value) }
 
-    set child(ctrl) { uiWindowSetChild(this._handle, koffi.as(ctrl._handle, 'void*')); }
+    set child(ctrl) { _uiWindowSetChild(this._handle, ctrl._handle); }
 
-    get margined() { return uiWindowMargined(this._handle) }
-    set margined(value) { uiWindowSetMargined(this._handle, value + 0) }
+    get margined() { return _uiWindowMargined(this._handle) }
+    set margined(value) { _uiWindowSetMargined(this._handle, value + 0) }
 
-    get resizeable() { return uiWindowResizeable(this._handle) }
-    set resizeable(value) { uiWindowSetResizeable(this._handle, value + 0) }
+    get resizeable() { return _uiWindowResizeable(this._handle) }
+    set resizeable(value) { _uiWindowSetResizeable(this._handle, value + 0) }
 
     onPositionChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiWindowOnPositionChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(windowPositionChangedCb));
+        _uiWindowOnPositionChanged(this._handle, new JSCallback(function (sender, senderData) { return cb(...arguments) }, {
+            returns: "void",
+            args: ["ptr", "ptr"],
+            threadsafe: false
+        }).ptr, 0);
     }
 
     onContentSizeChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiWindowOnContentSizeChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(windowContentSizeChangedCb));
+        _uiWindowOnContentSizeChanged(this._handle, new JSCallback(function (sender, senderData) { return cb(...arguments) }, {
+            returns: "void",
+            args: ["ptr", "ptr"],
+            threadsafe: false
+        }).ptr, 0);
     }
 
     onClosing(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiWindowOnClosing(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(windowClosingCb));
+        _uiWindowOnClosing(this._handle, new JSCallback(function (window, sender) { return cb(...arguments) }, {
+            returns: "int",
+            args: ["ptr"],
+            threadsafe: false
+        }).ptr, 0);
     }
 
     onFocusChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiWindowOnFocusChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(windowFocusChangedCb));
+        _uiWindowOnFocusChanged(this._handle, new JSCallback(function (sender, senderData) { return cb(...arguments) }, {
+            returns: "void",
+            args: ["ptr", "ptr"],
+            threadsafe: false
+        }).ptr, 0);
     }
 }
 
-module.exports = window;
+export default window;

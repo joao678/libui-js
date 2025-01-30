@@ -1,19 +1,7 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiMultilineEntry = koffi.pointer('uiMultilineEntry', koffi.opaque());
-
-const uiMultilineEntryText = lib.func('char * uiMultilineEntryText (uiMultilineEntry *e)')
-const uiMultilineEntrySetText = lib.func('void uiMultilineEntrySetText (uiMultilineEntry *e, const char *text)')
-const uiMultilineEntryAppend = lib.func('void uiMultilineEntryAppend (uiMultilineEntry *e, const char *text)')
-
-const uiMultilineEntryReadOnly = lib.func('int uiMultilineEntryReadOnly (uiMultilineEntry *e)')
-const uiMultilineEntrySetReadOnly = lib.func('void uiMultilineEntrySetReadOnly (uiMultilineEntry *e, int readonly)')
-const uiNewMultilineEntry = lib.func('uiMultilineEntry * uiNewMultilineEntry (void)')
-const uiNewNonWrappingMultilineEntry = lib.func('uiMultilineEntry * uiNewNonWrappingMultilineEntry (void)')
-
-const multilineEntryOnChangedCb = koffi.proto('multilineEntryOnChangedCb', 'int', ['uiMultilineEntry*', 'void *']);
-const uiMultilineEntryOnChanged = lib.func('void uiMultilineEntryOnChanged (uiMultilineEntry *e, multilineEntryOnChangedCb *cb, void *data)')
+import { CString, JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiMultilineEntryAppend, _uiMultilineEntryOnChanged, _uiMultilineEntryReadOnly, _uiMultilineEntrySetReadOnly, _uiMultilineEntrySetText, _uiMultilineEntryText, _uiNewMultilineEntry, _uiNewNonWrappingMultilineEntry } from "../lib";
+import { str } from "../util/util";
 
 const multilineEntrySymbol = Symbol();
 
@@ -24,26 +12,25 @@ class multilineentry extends control {
     }
 
     [multilineEntrySymbol]() {
-        this._handle = uiNewMultilineEntry();
+        this._handle = _uiNewMultilineEntry();
     }
 
-    get text() { return uiMultilineEntryText(this._handle) }
-    set text(value) { uiMultilineEntrySetText(this._handle, value) }
+    get text() { return new CString(_uiMultilineEntryText(this._handle)) }
+    set text(value) { _uiMultilineEntrySetText(this._handle, str`${value}`) }
 
-    get readonly() { return uiMultilineEntryReadOnly(this._handle) }
-    set readonly(value) { uiMultilineEntrySetReadOnly(this._handle, value+0) }
+    get readonly() { return _uiMultilineEntryReadOnly(this._handle) }
+    set readonly(value) { _uiMultilineEntrySetReadOnly(this._handle, value) }
 
     append(value) {
-        uiMultilineEntryAppend(this._handle, value)
+        _uiMultilineEntryAppend(this._handle, str`${value}`)
     }
 
     onChanged(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiMultilineEntryOnChanged(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(multilineEntryOnChangedCb));
+        _uiMultilineEntryOnChanged(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
@@ -54,9 +41,12 @@ class nonWrappingMultilineentry extends multilineentry {
     }
 
     [multilineEntrySymbol]() {
-        this._handle = uiNewNonWrappingMultilineEntry();
+        this._handle = _uiNewNonWrappingMultilineEntry();
     }
 }
 
-exports.multilineentry = multilineentry;
-exports.nonWrappingMultilineentry = nonWrappingMultilineentry;
+export {
+    multilineentry,
+    nonWrappingMultilineentry
+};
+

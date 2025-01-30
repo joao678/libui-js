@@ -1,37 +1,27 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiCheckbox = koffi.pointer('uiCheckbox', koffi.opaque());
-
-const uiNewCheckbox = lib.func('uiCheckbox* uiNewCheckbox(const char *text)');
-const uiCheckboxText = lib.func('char* uiCheckboxText (uiCheckbox *b)');
-const uiCheckboxSetText = lib.func('void uiCheckboxSetText (uiCheckbox *b, const char *text)');
-const uiCheckboxChecked = lib.func('int uiCheckboxChecked (uiCheckbox *c)');
-const uiCheckboxSetChecked = lib.func('void uiCheckboxSetChecked (uiCheckbox *c, int checked)');
-
-const CheckboxClickedCb = koffi.proto('CheckboxClickedCb', 'int', ['uiCheckbox*', 'void *']);
-const uiCheckboxOnToggled = lib.func('void uiCheckboxOnToggled (uiCheckbox *w, CheckboxClickedCb *cb, void *data)');
+import control from "../control";
+import { _uiCheckboxChecked, _uiCheckboxOnToggled, _uiCheckboxSetChecked, _uiCheckboxSetText, _uiCheckboxText, _uiNewCheckbox } from "../lib";
+import { str } from "../util/util";
+import { cc, FFIType, JSCallback, CString } from "bun:ffi";
 
 class checkbox extends control {
     constructor(title) {
         super();
-        this._handle = uiNewCheckbox(title);
+        this._handle = _uiNewCheckbox(str`${title}`);
     }
 
-    get text() { return uiCheckboxText(this._handle) }
-    set text(value) { uiCheckboxSetText(this._handle, value) }
+    get text() { return _uiCheckboxText(this._handle) }
+    set text(value) { _uiCheckboxSetText(this._handle, str`${value}`) }
 
-    get checked() { return !!uiCheckboxChecked(this._handle) }
-    set checked(value) { uiCheckboxSetChecked(this._handle, value+0) }
-        
+    get checked() { return !!_uiCheckboxChecked(this._handle) }
+    set checked(value) { _uiCheckboxSetChecked(this._handle, value) }
+
     onToggled(cb) {
-        const _cb = function() {
-            cb(...arguments);
-            return 1;
-        }
-        uiCheckboxOnToggled(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(CheckboxClickedCb));
+        _uiCheckboxOnToggled(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
-module.exports = checkbox;
+export default checkbox;

@@ -1,32 +1,24 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiButton = koffi.pointer('uiButton', koffi.opaque());
-
-const uiNewButton = lib.func('uiButton* uiNewButton(const char *text)');
-const uiButtonText = lib.func('char* uiButtonText (uiButton *b)');
-const uiButtonSetText = lib.func('void uiButtonSetText (uiButton *b, const char *text)');
-
-const buttonClickedCb = koffi.proto('buttonClickedCb', 'int', ['uiButton*', 'void *']);
-const uiButtonOnClicked = lib.func('void uiButtonOnClicked (uiButton *w, buttonClickedCb *cb, void *data)');
+import { CString, JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiButtonOnClicked, _uiButtonSetText, _uiButtonText, _uiNewButton } from "../lib";
+import { str } from "../util/util";
 
 class button extends control {
     constructor(title) {
         super();
-        this._handle = uiNewButton(title);
+        this._handle = _uiNewButton(str`${title}`);
     }
 
-    get text() { return uiButtonText(this._handle) }
-    set text(value) { uiButtonSetText(this._handle, value) }
+    get text() { return new CString(_uiButtonText(this._handle)); }
+    set text(value) { _uiButtonSetText(this._handle, str`${value}`) }
         
     onClicked(cb) {
-        const _cb = function() {
-            cb(...arguments);
-            return 1;
-        }
-        uiButtonOnClicked(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(buttonClickedCb));
+        _uiButtonOnClicked(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
-module.exports = button;
+export default button;

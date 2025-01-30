@@ -1,55 +1,41 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiCombobox = koffi.pointer('uiCombobox', koffi.opaque());
-
-const uiNewCombobox = lib.func('uiCombobox* uiNewCombobox()');
-const uiComboboxAppend = lib.func('void uiComboboxAppend (uiCombobox *c, const char *text)');
-const uiComboboxInsertAt = lib.func('void uiComboboxInsertAt (uiCombobox *c, int index, const char *text)');
-const uiComboboxDelete = lib.func('void uiComboboxDelete (uiCombobox *c, int index)');
-const uiComboboxClear = lib.func('void uiComboboxClear (uiCombobox *c)');
-
-const uiComboboxNumItems = lib.func('int uiComboboxNumItems(uiCombobox *c)');
-const uiComboboxSelected = lib.func('int uiComboboxSelected(uiCombobox *c)');
-const uiComboboxSetSelected = lib.func('void uiComboboxSetSelected(uiCombobox *c, int index);');
-
-const comboboxOnSelectedCb = koffi.proto('comboboxOnSelectedCb', 'int', ['uiCombobox*', 'void *']);
-const uiComboboxOnSelected = lib.func('void uiComboboxOnSelected (uiCombobox *w, comboboxOnSelectedCb *cb, void *data)');
+import { CString, JSCallback } from "bun:ffi";
+import control from "../control";
+import { _uiButtonOnClicked, _uiButtonSetText, _uiButtonText, _uiComboboxAppend, _uiComboboxClear, _uiComboboxDelete, _uiComboboxInsertAt, _uiComboboxNumItems, _uiComboboxOnSelected, _uiComboboxSelected, _uiComboboxSetSelected, _uiNewButton, _uiNewCombobox } from "../lib";
+import { str } from "../util/util";
 
 class combobox extends control {
     constructor() {
         super();
-        this._handle = uiNewCombobox();
+        this._handle = _uiNewCombobox();
     }
 
-    get numItems() { return uiComboboxNumItems(this._handle) }
-    get selected() { return uiComboboxSelected(this._handle) }
-    set selected(index) { return uiComboboxSetSelected(this._handle, index) }
+    get numItems() { return _uiComboboxNumItems(this._handle) }
+    get selected() { return _uiComboboxSelected(this._handle) }
+    set selected(index) { _uiComboboxSetSelected(this._handle, index) }
 
     append(text) {
-        uiComboboxAppend(this._handle, text);
+        _uiComboboxAppend(this._handle, str`${text}`);
     }
 
     insertAt(index, text) {
-        uiComboboxInsertAt(this._handle, index, text);
+        _uiComboboxInsertAt(this._handle, index, str`${text}`);
     }
 
     delete(index) {
-        uiComboboxDelete(this._handle, index);
+        _uiComboboxDelete(this._handle, index);
     }
 
     clear() {
-        uiComboboxClear(this._handle);
+        _uiComboboxClear(this._handle);
     }
 
     onSelected(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiComboboxOnSelected(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(comboboxOnSelectedCb));
+        _uiComboboxOnSelected(this._handle, new JSCallback(function (sender, senderData) { cb(...arguments) }, {
+            args: ["ptr", "ptr"],
+            returns: "void",
+            threadsafe: false
+        }).ptr, null);
     }
 }
 
-module.exports = combobox;
+export default combobox;

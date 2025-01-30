@@ -1,20 +1,16 @@
-const control = require("../control");
-const { lib, koffi } = require("../lib");
-
-const uiLabel = koffi.pointer('uiLabel', koffi.opaque());
-
-const uiLabelText = lib.func('char* uiLabelText (uiLabel *l)')
-const uiLabelSetText = lib.func('void uiLabelSetText (uiLabel *l, const char *text)')
-const uiNewLabel = lib.func('uiLabel* uiNewLabel (const char *text)')
+import { CString } from "bun:ffi";
+import control from "../control";
+import { _uiLabelSetText, _uiLabelText, _uiNewLabel } from "../lib";
+import { str } from "../util/util";
 
 class label extends control {
     constructor(title) {
         super();
-        this._handle = uiNewLabel(title);
+        this._handle = _uiNewLabel(str`${title}`);
     }
 
-    get text() { return uiLabelText(this._handle) }
-    set text(value) { uiLabelSetText(this._handle, value) }
+    get text() { return new CString(_uiLabelText(this._handle)) }
+    set text(value) { _uiLabelSetText(this._handle, str`${value}`) }
 }
 
-module.exports = label;
+export default label;
