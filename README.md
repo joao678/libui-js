@@ -14,4 +14,4 @@ bun run controlsTest.js
 - area.js for drawing area test
 
 # Todo
-Drawing features, free functions where needed
+free functions where needed
