@@ -1,41 +1,57 @@
-import { CString, JSCallback, ptr, read } from "bun:ffi";
+import { JSCallback, ptr, read } from "bun:ffi";
 import control from "../control";
-import { _uiNewArea, _uiNewTable, _uiNewTableModel, _uiNewTableValueColor, _uiNewTableValueImage, _uiNewTableValueInt, _uiNewTableValueString, _uiTableAppendButtonColumn, _uiTableAppendCheckboxColumn, _uiTableAppendCheckboxTextColumn, _uiTableAppendImageColumn, _uiTableAppendImageTextColumn, _uiTableAppendProgressBarColumn, _uiTableAppendTextColumn, _uiTableColumnSetWidth, _uiTableGetSelection, _uiTableGetSelectionMode, _uiTableHeaderOnClicked, _uiTableHeaderSetSortIndicator, _uiTableHeaderSetVisible, _uiTableHeaderSortIndicator, _uiTableHeaderVisible, _uiTableModelRowDeleted, _uiTableModelRowInserted, _uiTableOnRowClicked, _uiTableOnRowDoubleClicked, _uiTableOnSelectionChanged, _uiTableSetSelection, _uiTableSetSelectionMode, _uiTableValueInt, _uiTableValueString } from "../lib";
-import { str } from "../util/util";
+import { _uiAreaQueueRedrawAll, _uiAreaScrollTo, _uiDrawClip, _uiDrawRestore, _uiDrawSave, _uiDrawText, _uiDrawTransform, _uiNewArea, _uiNewScrollingArea } from "../lib";
+
+const areaSymbol = Symbol();
 
 class area extends control {
     constructor(draw, mouseEvent, mouseCrossed, dragBroken, keyEvent) {
         super();
 
+        this.setAreaHandler(draw, mouseEvent, mouseCrossed, dragBroken, keyEvent);
+        this[areaSymbol]();
+    }
+
+    setAreaHandler(draw, mouseEvent, mouseCrossed, dragBroken, keyEvent) {
         this._areaHandler = BigUint64Array.from([
             //Draw
             BigInt(new JSCallback(function (handler, area, params) {
-                /* let drawParams = {
-                    context: read.ptr(params, 0*8),
-                    areaWidth: read.f64(params, 1*8),
-                    areaHeight: read.f64(params, 2*8),
-                    clipWidth: read.f64(params, 3*8),
-                    clipHeight: read.f64(params, 4*8),
+                let drawParams = {
+                    context: read.ptr(params, 0 * 8),
+                    areaWidth: read.f64(params, 1 * 8),
+                    areaHeight: read.f64(params, 2 * 8),
+                    clipWidth: read.f64(params, 3 * 8),
+                    clipHeight: read.f64(params, 4 * 8),
                 }
-                draw(drawParams); */
-                draw(params);
-                console.log("draw");
+                draw(drawParams);
             }, {
                 args: ["ptr", "ptr", "ptr"],
                 returns: "void",
                 threadsafe: false
             }).ptr),
             //MouseEvent
-            BigInt(new JSCallback(function (tableModelHandler, tableModel, column) {
-                //console.log("mouseEvent");
+            BigInt(new JSCallback(function (handler, area, event) {
+                let mouseParams = {
+                    x: read.f64(event, 0 * 8),
+                    y: read.f64(event, 1 * 8),
+                    areawidth: read.f64(event, 2 * 8),
+                    areaHeight: read.f64(event, 3 * 8),
+                    down: read.i32(event, 4 * 8),
+                    //up: read.i32(event, 5 * 8),
+                    up: read.i32(event, (4 * 8) + (4 * 1)),
+                    count: read.i32(event, (4 * 8) + (4 * 2)),
+                    modifiers: read.ptr(event, 7 * 8),
+                    held1To64: read.u64(event, 8 * 8),
+                }
+                mouseEvent(mouseParams);
             }, {
                 args: ["ptr", "ptr", "ptr"],
                 returns: "void",
                 threadsafe: false
             }).ptr),
             //MouseCrossed
-            BigInt(new JSCallback(function (tableModelHandler, tableModel) {
-                //console.log("MouseCrossed");
+            BigInt(new JSCallback(function (handler, area, left) {
+                mouseCrossed(left)
             }, {
                 args: ["ptr", "ptr", "i32"],
                 returns: "void",
@@ -50,40 +66,73 @@ class area extends control {
                 threadsafe: false
             }).ptr),
             //KeyEvent
-            BigInt(new JSCallback(function (m, mh, row, column, value) {
-                return keyEvent(...arguments);
+            BigInt(new JSCallback(function (handler, area, areaKeyEvent) {
+                let keyParams = {
+                    key: read.i8(areaKeyEvent, 0 * 4),
+                    extKey: read.i32(areaKeyEvent, 1 * 4),
+                    modifier: read.i32(areaKeyEvent, 2 * 4),
+                    modifiers: read.i32(areaKeyEvent, 3 * 4),
+                    up: read.i32(areaKeyEvent, 4 * 4),
+                }
+                return keyEvent(keyParams);
             }, {
                 args: ["ptr", "ptr", "ptr"],
                 returns: "i32",
                 threadsafe: false
             }).ptr)
         ]);
+    }
 
-        /* this._tableModel = _uiNewTableModel(ptr(this._areaHandler));
-        let tableParams = ptr(new BigUint64Array([BigInt(this._tableModel), BigInt(0)])); */
-
+    [areaSymbol]() {
         this._handle = _uiNewArea(ptr(this._areaHandler));
     }
 
     setSize(width, height) {
-        uiAreaSetSize(this._handle, width, height);
+        _uiAreaSetSizeSetSize(this._handle, width, height);
     }
 
     redrawAll() {
-        uiAreaQueueRedrawAll(this._handle);
+        _uiAreaQueueRedrawAll(this._handle);
     }
 
-    /* get text() { return uiButtonText(this._handle) }
-    set text(value) { uiButtonSetText(this._handle, value) }
+    transform(context, matrix) {
+        _uiDrawTransform(context, matrix._handle);
+    }
 
-    onClicked(cb) {
-        const _cb = function () {
-            cb(...arguments);
-            return 1;
-        }
-        uiButtonOnClicked(this._handle, _cb, 0);
-        koffi.register(_cb, koffi.pointer(buttonClickedCb));
-    } */
+    clip(context, path) {
+        _uiDrawClip(context, path._handle);
+    }
+
+    save(context) {
+        _uiDrawSave(context);
+    }
+
+    restore(context) {
+        _uiDrawRestore(context);
+    }
+
+    drawText(context, textlayout, x, y) {
+        _uiDrawText(context, textlayout._handle, Math.fround(x), Math.fround(y));
+    }
 }
 
-export default area;
+class scrollingArea extends area {
+    constructor(draw, mouseEvent, mouseCrossed, dragBroken, keyEvent, width, height) {
+        super();
+        this.setAreaHandler(draw, mouseEvent, mouseCrossed, dragBroken, keyEvent);
+        this[areaSymbol](width, height);
+    }
+
+    [areaSymbol](width, height) {
+        this._handle = _uiNewScrollingArea(ptr(this._areaHandler), width, height);
+    }
+
+    scrollTo(x, y, width, height) {
+        _uiAreaScrollTo(this._handle, Math.fround(x), Math.fround(y), Math.fround(width), Math.fround(height));
+    }
+}
+
+export {
+    scrollingArea,
+    area
+};

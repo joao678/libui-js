@@ -1,4 +1,4 @@
-import { cc, FFIType, JSCallback } from "bun:ffi";
+import { cc, dlopen, FFIType, JSCallback } from "bun:ffi";
 import source from "../libs/main.c" with { type: "file" };
 
 const {
@@ -298,14 +298,7 @@ const {
         _uiTableOnSelectionChanged,
         _uiTableGetSelection,
         _uiTableSetSelection,
-        _uiFreeTableSelection,
-
-        _uiTableParams,
-        _uiTableModelHandler,
-        _uiAreaHandler,
-        _uiDrawBrush,
-
-        _uiDrawTextLayoutParams
+        _uiFreeTableSelection
     },
 } = cc({
     source,
@@ -946,7 +939,7 @@ const {
             returns: 'ptr',
         },
         _uiAreaScrollTo: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
+            args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiAreaBeginUserWindowMove: {
@@ -974,28 +967,28 @@ const {
             returns: 'ptr',
         },
         _uiDrawPathNewFigure: {
-            args: ['ptr', 'ptr', 'ptr'],
-            returns: 'ptr',
+            args: ['ptr', 'f64', 'f64'],
+            returns: 'void',
         },
         _uiDrawPathNewFigureWithArc: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'i32'],
-            returns: 'ptr',
+            args: ['ptr', 'f64', 'f64', 'f64', 'f64', 'f64', 'i32'],
+            returns: 'void',
         },
         _uiDrawPathLineTo: {
-            args: ['ptr', 'ptr', 'ptr'],
+            args: ['ptr', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiDrawPathArcTo: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'i32'],
-            returns: 'ptr',
+            args: ['ptr', 'f64', 'f64', 'f64', 'f64', 'f64', 'i32'],
+            returns: 'void',
         },
         _uiDrawPathBezierTo: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
-            returns: 'ptr',
+            args: ['ptr', 'f64', 'f64', 'f64', 'f64', 'f64', 'f64'],
+            returns: 'void',
         },
         _uiDrawPathCloseFigure: {
             args: ['ptr'],
-            returns: 'ptr',
+            returns: 'void',
         },
         _uiDrawPathAddRectangle: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
@@ -1011,7 +1004,7 @@ const {
         },
         _uiDrawStroke: {
             args: ['ptr', 'ptr', 'ptr', 'ptr'],
-            returns: 'ptr',
+            returns: 'void',
         },
         _uiDrawFill: {
             args: ['ptr', 'ptr', 'ptr'],
@@ -1019,22 +1012,22 @@ const {
         },
         _uiDrawMatrixSetIdentity: {
             args: ['ptr'],
-            returns: 'ptr',
+            returns: 'void',
         },
         _uiDrawMatrixTranslate: {
-            args: ['ptr', 'ptr', 'ptr'],
-            returns: 'ptr',
+            args: ['ptr', 'f64', 'f64'],
+            returns: 'void',
         },
         _uiDrawMatrixScale: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
-            returns: 'ptr',
+            args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
+            returns: 'void',
         },
         _uiDrawMatrixRotate: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr'],
-            returns: 'ptr',
+            args: ['ptr', 'f64', 'f64', 'f64'],
+            returns: 'void',
         },
         _uiDrawMatrixSkew: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
+            args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiDrawMatrixMultiply: {
@@ -1043,27 +1036,27 @@ const {
         },
         _uiDrawMatrixInvertible: {
             args: ['ptr'],
-            returns: 'ptr',
+            returns: 'bool',
         },
         _uiDrawMatrixInvert: {
             args: ['ptr'],
-            returns: 'ptr',
+            returns: 'bool',
         },
         _uiDrawMatrixTransformPoint: {
-            args: ['ptr', 'ptr', 'ptr'],
+            args: ['ptr', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiDrawMatrixTransformSize: {
-            args: ['ptr', 'ptr', 'ptr'],
+            args: ['ptr', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiDrawTransform: {
             args: ['ptr', 'ptr'],
-            returns: 'ptr',
+            returns: 'void',
         },
         _uiDrawClip: {
             args: ['ptr', 'ptr'],
-            returns: 'ptr',
+            returns: 'void',
         },
         _uiDrawSave: {
             args: ['ptr'],
@@ -1090,7 +1083,7 @@ const {
             returns: 'ptr',
         },
         _uiNewSizeAttribute: {
-            args: ['ptr'],
+            args: ['f64'],
             returns: 'ptr',
         },
         _uiAttributeSize: {
@@ -1098,7 +1091,7 @@ const {
             returns: 'ptr',
         },
         _uiNewWeightAttribute: {
-            args: ['ptr'],
+            args: ['i32'],
             returns: 'ptr',
         },
         _uiAttributeWeight: {
@@ -1106,7 +1099,7 @@ const {
             returns: 'ptr',
         },
         _uiNewItalicAttribute: {
-            args: ['ptr'],
+            args: ['i32'],
             returns: 'ptr',
         },
         _uiAttributeItalic: {
@@ -1114,7 +1107,7 @@ const {
             returns: 'ptr',
         },
         _uiNewStretchAttribute: {
-            args: ['ptr'],
+            args: ['i32'],
             returns: 'ptr',
         },
         _uiAttributeStretch: {
@@ -1122,7 +1115,7 @@ const {
             returns: 'ptr',
         },
         _uiNewColorAttribute: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr'],
+            args: ['f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiAttributeColor: {
@@ -1130,11 +1123,11 @@ const {
             returns: 'ptr',
         },
         _uiNewBackgroundAttribute: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr'],
+            args: ['f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiNewUnderlineAttribute: {
-            args: ['ptr'],
+            args: ['i32'],
             returns: 'ptr',
         },
         _uiAttributeUnderline: {
@@ -1142,7 +1135,7 @@ const {
             returns: 'ptr',
         },
         _uiNewUnderlineColorAttribute: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
+            args: ['i32', 'f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
         _uiAttributeUnderlineColor: {
@@ -1195,26 +1188,26 @@ const {
         },
         _uiAttributedStringString: {
             args: ['ptr'],
-            returns: 'ptr',
+            returns: 'cstring',
         },
         _uiAttributedStringLen: {
             args: ['ptr'],
-            returns: 'ptr',
+            returns: 'i32',
         },
         _uiAttributedStringAppendUnattributed: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
         _uiAttributedStringInsertAtUnattributed: {
-            args: ['ptr', 'cstring', 'ptr'],
+            args: ['ptr', 'cstring', 'i32'],
             returns: 'ptr',
         },
         _uiAttributedStringDelete: {
-            args: ['ptr', 'ptr', 'ptr'],
+            args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
         _uiAttributedStringSetAttribute: {
-            args: ['ptr', 'ptr', 'ptr', 'ptr'],
+            args: ['ptr', 'ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
         _uiAttributedStringForEachAttribute: {
@@ -1235,7 +1228,7 @@ const {
         },
         _uiLoadControlFont: {
             args: ['ptr'],
-            returns: 'ptr',
+            returns: 'void',
         },
         _uiFreeFontDescriptor: {
             args: ['ptr'],
@@ -1495,28 +1488,6 @@ const {
         },
         _uiFreeTableSelection: {
             args: ['ptr'],
-            returns: 'ptr',
-        },
-
-        _uiTableParams: {
-            args: ['ptr', 'i32'],
-            returns: 'ptr',
-        },
-        _uiTableModelHandler: {
-            args: ['callback', 'callback', 'callback', 'callback', 'callback'],
-            returns: 'ptr',
-        },
-        _uiAreaHandler: {
-            args: ['callback', 'callback', 'callback', 'callback', 'callback'],
-            returns: 'ptr',
-        },
-        _uiDrawBrush: {
-            args: ['int', 'f64', 'f64', 'f64', 'f64'],
-            returns: 'ptr',
-        },
-
-        _uiDrawTextLayoutParams: {
-            args: ['cstring', 'f64', 'int'],
             returns: 'ptr',
         }
     },
@@ -1818,12 +1789,5 @@ export {
     _uiTableOnSelectionChanged,
     _uiTableGetSelection,
     _uiTableSetSelection,
-    _uiFreeTableSelection,
-
-    _uiTableParams,
-    _uiTableModelHandler,
-    _uiAreaHandler,
-    _uiDrawBrush,
-
-    _uiDrawTextLayoutParams
+    _uiFreeTableSelection
 }

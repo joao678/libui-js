@@ -1,7 +1,12 @@
 import { CString, JSCallback } from "bun:ffi";
-import area from "./area/area.js";
+import { scrollingArea, area } from "./area/area.js";
+import attributedString from "./area/attributedString.js";
 import brush from "./area/brush.js";
+import fontDescriptor from "./area/fontDescriptor.js";
+import matrix from "./area/matrix.js";
 import areaPath from "./area/path.js";
+import strokeParams from "./area/strokeParams.js";
+import textlayout from "./area/textlayout.js";
 import { hbox, vbox } from "./controls/box.js";
 import button from "./controls/button.js";
 import checkbox from "./controls/checkbox.js";
@@ -69,16 +74,14 @@ class libui {
 }
 
 export {
-    area, areaPath, brush, button, checkbox,
+    area, areaPath, attributedString, brush, button, checkbox,
     colorButton, combobox, datePicker, dateTimePicker, editablecombobox,
-    entry, fontbutton,
-    form,
+    entry, fontbutton, fontDescriptor, form,
     grid,
-    group, hbox, horizontalSeparator, label, libui, menu, multilineentry,
+    group, hbox, horizontalSeparator, label, libui, matrix, menu, multilineentry,
     nonWrappingMultilineentry, passwordentry, progressbar,
-    radiobuttons, searchEntry, slider,
-    spinbox,
-    tab,
-    table, timePicker, vbox, verticalSeparator, window
+    radiobuttons, scrollingArea, searchEntry, slider,
+    spinbox, strokeParams, tab,
+    table, textlayout, timePicker, vbox, verticalSeparator, window
 };
 

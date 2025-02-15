@@ -3,93 +3,6 @@
 #include <malloc.h>
 #include "ui.h"
 
-//
-uiDrawTextLayoutParams* _uiDrawTextLayoutParams(const char *String, double Width, uiDrawTextAlign Align)
-{
-    uiDrawTextLayoutParams *layoutParams = (uiDrawTextLayoutParams*)malloc(sizeof(uiDrawTextLayoutParams));
-    uiFontDescriptor *defaultFont = (uiFontDescriptor*)malloc(sizeof(uiFontDescriptor));
-    uiLoadControlFont(defaultFont);
-    uiAttributedString* attributedString = uiNewAttributedString(String);
-    uiAttributedStringSetAttribute(attributedString, uiNewColorAttribute(1, 0, 0, 1), 0, uiAttributedStringLen(attributedString));
-    layoutParams->Align = Align;
-    layoutParams->DefaultFont = defaultFont;
-    layoutParams->String = attributedString;
-    layoutParams->Width = Width;
-
-    return layoutParams;
-}
-
-uiDrawBrush *_uiDrawBrush(uiDrawBrushType Type, double R, double G, double B, double A)
-{
-    uiDrawBrush *drawBrush = (uiDrawBrush *)malloc(sizeof(uiDrawBrush));
-    drawBrush->Type = Type;
-    drawBrush->R = R;
-    drawBrush->G = G;
-    drawBrush->B = B;
-    drawBrush->A = A;
-    // drawBrush->Y0 = 0;
-    // drawBrush->Y1 = 0;
-    // drawBrush->X0 = 0;
-    // drawBrush->X1 = 0;
-    // drawBrush->OuterRadius = 0;
-    // drawBrush->NumStops = 0;
-
-    // uiDrawBrushGradientStop * stops = (uiDrawBrushGradientStop*)malloc(sizeof(uiDrawBrushGradientStop));
-    // stops->Pos = 0;
-    // stops->R = 0;
-    // stops->G = 0;
-    // stops->B = 0;
-    // stops->A = 0;
-
-    // drawBrush->Stops = stops;
-
-    return drawBrush;
-}
-
-uiAreaHandler *_uiAreaHandler(
-    void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *),
-    void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *),
-    void (*MouseCrossed)(uiAreaHandler *, uiArea *, int left),
-    void (*DragBroken)(uiAreaHandler *, uiArea *),
-    int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *))
-{
-    uiAreaHandler *areaHandler = (uiAreaHandler *)malloc(sizeof(uiAreaHandler));
-    areaHandler->Draw = Draw;
-    areaHandler->MouseEvent = MouseEvent;
-    areaHandler->MouseCrossed = MouseCrossed;
-    areaHandler->DragBroken = DragBroken;
-    areaHandler->KeyEvent = KeyEvent;
-
-    return areaHandler;
-}
-
-uiTableModelHandler *_uiTableModelHandler(
-    int (*NumColumns)(uiTableModelHandler *, uiTableModel *),
-    uiTableValueType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int column),
-    int (*NumRows)(uiTableModelHandler *, uiTableModel *),
-    uiTableValue *(*CellValue)(uiTableModelHandler *mh, uiTableModel *m, int row, int column),
-    void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const uiTableValue *))
-{
-    uiTableModelHandler *tableModelHandler = (uiTableModelHandler *)malloc(sizeof(uiTableModelHandler));
-    tableModelHandler->CellValue = CellValue;
-    tableModelHandler->ColumnType = ColumnType;
-    tableModelHandler->NumColumns = NumColumns;
-    tableModelHandler->NumRows = NumRows;
-    tableModelHandler->SetCellValue = SetCellValue;
-
-    return tableModelHandler;
-}
-
-uiTableParams *_uiTableParams(uiTableModel *model, int RowBackgroundColorModelColumn)
-{
-    uiTableParams *tableParams = (uiTableParams *)malloc(sizeof(uiTableParams));
-    tableParams->Model = model;
-    tableParams->RowBackgroundColorModelColumn = RowBackgroundColorModelColumn;
-
-    return tableParams;
-}
-//
-
 const char *_uiInit(uiInitOptions *options)
 {
     return uiInit(options);
@@ -786,13 +699,13 @@ void _uiDrawPathEnd(uiDrawPath *p)
 {
     uiDrawPathEnd(p);
 }
-void _uiDrawStroke(uiAreaDrawParams *p, uiDrawPath *path, uiDrawBrush *b, uiDrawStrokeParams *strokeParams)
+void _uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStrokeParams *strokeParams)
 {
-    uiDrawStroke(p->Context, path, b, strokeParams);
+    uiDrawStroke(c, path, b, strokeParams);
 }
-void _uiDrawFill(uiAreaDrawParams *p, uiDrawPath *path, uiDrawBrush *b)
+void _uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 {
-    uiDrawFill(p->Context, path, b);
+    uiDrawFill(c, path, b);
 }
 void _uiDrawMatrixSetIdentity(uiDrawMatrix *m)
 {
@@ -1026,9 +939,9 @@ void _uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
     uiDrawFreeTextLayout(tl);
 }
-void _uiDrawText(uiAreaDrawParams *c, uiDrawTextLayout *tl, double x, double y)
+void _uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
-    uiDrawText(c->Context, tl, x, y);
+    uiDrawText(c, tl, x, y);
 }
 void _uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
