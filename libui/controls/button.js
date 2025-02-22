@@ -9,7 +9,7 @@ class button extends control {
         this._handle = _uiNewButton(str`${title}`);
     }
 
-    get text() { return new CString(_uiButtonText(this._handle)); }
+    get text() { return _uiButtonText(this._handle); }
     set text(value) { _uiButtonSetText(this._handle, str`${value}`) }
         
     onClicked(cb) {
@@ -17,7 +17,7 @@ class button extends control {
             args: ["ptr", "ptr"],
             returns: "void",
             threadsafe: false
-        }).ptr, null);
+        }).ptr, 0);
     }
 }
 

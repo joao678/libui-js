@@ -1,1793 +1,1521 @@
-import { cc, dlopen, FFIType, JSCallback } from "bun:ffi";
-import source from "../libs/main.c" with { type: "file" };
+import { dlopen, suffix } from "bun:ffi";
 
 const {
     symbols: {
-        _uiInit,
-        _uiUninit,
-        _uiFreeInitError,
-        _uiMain,
-        _uiMainSteps,
-        _uiMainStep,
-        _uiQuit,
-        _uiQueueMain,
-        _uiTimer,
-        _uiOnShouldQuit,
-        _uiFreeText,
-        _uiControlDestroy,
-        _uiControlHandle,
-        _uiControlParent,
-        _uiControlSetParent,
-        _uiControlToplevel,
-        _uiControlVisible,
-        _uiControlShow,
-        _uiControlHide,
-        _uiControlEnabled,
-        _uiControlEnable,
-        _uiControlDisable,
-        _uiAllocControl,
-        _uiFreeControl,
-        _uiControlVerifySetParent,
-        _uiControlEnabledToUser,
-        _uiUserBugCannotSetParentOnToplevel,
-        _uiWindowTitle,
-        _uiWindowSetTitle,
-        _uiWindowPosition,
-        _uiWindowSetPosition,
-        _uiWindowOnPositionChanged,
-        _uiWindowContentSize,
-        _uiWindowSetContentSize,
-        _uiWindowFullscreen,
-        _uiWindowSetFullscreen,
-        _uiWindowOnContentSizeChanged,
-        _uiWindowOnClosing,
-        _uiWindowOnFocusChanged,
-        _uiWindowFocused,
-        _uiWindowBorderless,
-        _uiWindowSetBorderless,
-        _uiWindowSetChild,
-        _uiWindowMargined,
-        _uiWindowSetMargined,
-        _uiWindowResizeable,
-        _uiWindowSetResizeable,
-        _uiNewWindow,
-        _uiButtonText,
-        _uiButtonSetText,
-        _uiButtonOnClicked,
-        _uiNewButton,
-        _uiBoxAppend,
-        _uiBoxNumChildren,
-        _uiBoxDelete,
-        _uiBoxPadded,
-        _uiBoxSetPadded,
-        _uiNewHorizontalBox,
-        _uiNewVerticalBox,
-        _uiCheckboxText,
-        _uiCheckboxSetText,
-        _uiCheckboxOnToggled,
-        _uiCheckboxChecked,
-        _uiCheckboxSetChecked,
-        _uiNewCheckbox,
-        _uiEntryText,
-        _uiEntrySetText,
-        _uiEntryOnChanged,
-        _uiEntryReadOnly,
-        _uiEntrySetReadOnly,
-        _uiNewEntry,
-        _uiNewPasswordEntry,
-        _uiNewSearchEntry,
-        _uiLabelText,
-        _uiLabelSetText,
-        _uiNewLabel,
-        _uiTabAppend,
-        _uiTabInsertAt,
-        _uiTabDelete,
-        _uiTabNumPages,
-        _uiTabMargined,
-        _uiTabSetMargined,
-        _uiNewTab,
-        _uiGroupTitle,
-        _uiGroupSetTitle,
-        _uiGroupSetChild,
-        _uiGroupMargined,
-        _uiGroupSetMargined,
-        _uiNewGroup,
-        _uiSpinboxValue,
-        _uiSpinboxSetValue,
-        _uiSpinboxOnChanged,
-        _uiNewSpinbox,
-        _uiSliderValue,
-        _uiSliderSetValue,
-        _uiSliderHasToolTip,
-        _uiSliderSetHasToolTip,
-        _uiSliderOnChanged,
-        _uiSliderOnReleased,
-        _uiSliderSetRange,
-        _uiNewSlider,
-        _uiProgressBarValue,
-        _uiProgressBarSetValue,
-        _uiNewProgressBar,
-        _uiNewHorizontalSeparator,
-        _uiNewVerticalSeparator,
-        _uiComboboxAppend,
-        _uiComboboxInsertAt,
-        _uiComboboxDelete,
-        _uiComboboxClear,
-        _uiComboboxNumItems,
-        _uiComboboxSelected,
-        _uiComboboxSetSelected,
-        _uiComboboxOnSelected,
-        _uiNewCombobox,
-        _uiEditableComboboxAppend,
-        _uiEditableComboboxText,
-        _uiEditableComboboxSetText,
-        _uiEditableComboboxOnChanged,
-        _uiNewEditableCombobox,
-        _uiRadioButtonsAppend,
-        _uiRadioButtonsSelected,
-        _uiRadioButtonsSetSelected,
-        _uiRadioButtonsOnSelected,
-        _uiNewRadioButtons,
-        _uiDateTimePickerTime,
-        _uiDateTimePickerSetTime,
-        _uiDateTimePickerOnChanged,
-        _uiNewDateTimePicker,
-        _uiNewDatePicker,
-        _uiNewTimePicker,
-        _uiMultilineEntryText,
-        _uiMultilineEntrySetText,
-        _uiMultilineEntryAppend,
-        _uiMultilineEntryOnChanged,
-        _uiMultilineEntryReadOnly,
-        _uiMultilineEntrySetReadOnly,
-        _uiNewMultilineEntry,
-        _uiNewNonWrappingMultilineEntry,
-        _uiMenuItemEnable,
-        _uiMenuItemDisable,
-        _uiMenuItemOnClicked,
-        _uiMenuItemChecked,
-        _uiMenuItemSetChecked,
-        _uiMenuAppendItem,
-        _uiMenuAppendCheckItem,
-        _uiMenuAppendQuitItem,
-        _uiMenuAppendPreferencesItem,
-        _uiMenuAppendAboutItem,
-        _uiMenuAppendSeparator,
-        _uiNewMenu,
-        _uiOpenFile,
-        _uiOpenFolder,
-        _uiSaveFile,
-        _uiMsgBox,
-        _uiMsgBoxError,
-        _uiAreaSetSize,
-        _uiAreaQueueRedrawAll,
-        _uiAreaScrollTo,
-        _uiAreaBeginUserWindowMove,
-        _uiAreaBeginUserWindowResize,
-        _uiNewArea,
-        _uiNewScrollingArea,
-        _uiDrawNewPath,
-        _uiDrawFreePath,
-        _uiDrawPathNewFigure,
-        _uiDrawPathNewFigureWithArc,
-        _uiDrawPathLineTo,
-        _uiDrawPathArcTo,
-        _uiDrawPathBezierTo,
-        _uiDrawPathCloseFigure,
-        _uiDrawPathAddRectangle,
-        _uiDrawPathEnded,
-        _uiDrawPathEnd,
-        _uiDrawStroke,
-        _uiDrawFill,
-        _uiDrawMatrixSetIdentity,
-        _uiDrawMatrixTranslate,
-        _uiDrawMatrixScale,
-        _uiDrawMatrixRotate,
-        _uiDrawMatrixSkew,
-        _uiDrawMatrixMultiply,
-        _uiDrawMatrixInvertible,
-        _uiDrawMatrixInvert,
-        _uiDrawMatrixTransformPoint,
-        _uiDrawMatrixTransformSize,
-        _uiDrawTransform,
-        _uiDrawClip,
-        _uiDrawSave,
-        _uiDrawRestore,
-        _uiFreeAttribute,
-        _uiAttributeGetType,
-        _uiNewFamilyAttribute,
-        _uiAttributeFamily,
-        _uiNewSizeAttribute,
-        _uiAttributeSize,
-        _uiNewWeightAttribute,
-        _uiAttributeWeight,
-        _uiNewItalicAttribute,
-        _uiAttributeItalic,
-        _uiNewStretchAttribute,
-        _uiAttributeStretch,
-        _uiNewColorAttribute,
-        _uiAttributeColor,
-        _uiNewBackgroundAttribute,
-        _uiNewUnderlineAttribute,
-        _uiAttributeUnderline,
-        _uiNewUnderlineColorAttribute,
-        _uiAttributeUnderlineColor,
-        _uiNewOpenTypeFeatures,
-        _uiFreeOpenTypeFeatures,
-        _uiOpenTypeFeaturesClone,
-        _uiOpenTypeFeaturesAdd,
-        _uiOpenTypeFeaturesRemove,
-        _uiOpenTypeFeaturesGet,
-        _uiOpenTypeFeaturesForEach,
-        _uiNewFeaturesAttribute,
-        _uiAttributeFeatures,
-        _uiNewAttributedString,
-        _uiFreeAttributedString,
-        _uiAttributedStringString,
-        _uiAttributedStringLen,
-        _uiAttributedStringAppendUnattributed,
-        _uiAttributedStringInsertAtUnattributed,
-        _uiAttributedStringDelete,
-        _uiAttributedStringSetAttribute,
-        _uiAttributedStringForEachAttribute,
-        _uiAttributedStringNumGraphemes,
-        _uiAttributedStringByteIndexToGrapheme,
-        _uiAttributedStringGraphemeToByteIndex,
-        _uiLoadControlFont,
-        _uiFreeFontDescriptor,
-        _uiDrawNewTextLayout,
-        _uiDrawFreeTextLayout,
-        _uiDrawText,
-        _uiDrawTextLayoutExtents,
-        _uiFontButtonFont,
-        _uiFontButtonOnChanged,
-        _uiNewFontButton,
-        _uiFreeFontButtonFont,
-        _uiColorButtonColor,
-        _uiColorButtonSetColor,
-        _uiColorButtonOnChanged,
-        _uiNewColorButton,
-        _uiFormAppend,
-        _uiFormNumChildren,
-        _uiFormDelete,
-        _uiFormPadded,
-        _uiFormSetPadded,
-        _uiNewForm,
-        _uiGridAppend,
-        _uiGridInsertAt,
-        _uiGridPadded,
-        _uiGridSetPadded,
-        _uiNewGrid,
-        _uiNewImage,
-        _uiFreeImage,
-        _uiImageAppend,
-        _uiFreeTableValue,
-        _uiTableValueGetType,
-        _uiNewTableValueString,
-        _uiTableValueString,
-        _uiNewTableValueImage,
-        _uiTableValueImage,
-        _uiNewTableValueInt,
-        _uiTableValueInt,
-        _uiNewTableValueColor,
-        _uiTableValueColor,
-        _uiNewTableModel,
-        _uiFreeTableModel,
-        _uiTableModelRowInserted,
-        _uiTableModelRowChanged,
-        _uiTableModelRowDeleted,
-        _uiTableAppendTextColumn,
-        _uiTableAppendImageColumn,
-        _uiTableAppendCheckboxColumn,
-        _uiTableAppendCheckboxTextColumn,
-        _uiTableAppendProgressBarColumn,
-        _uiTableAppendButtonColumn,
-        _uiTableAppendImageTextColumn,
-        _uiTableHeaderVisible,
-        _uiTableHeaderSetVisible,
-        _uiNewTable,
-        _uiTableOnRowClicked,
-        _uiTableOnRowDoubleClicked,
-        _uiTableHeaderSetSortIndicator,
-        _uiTableHeaderSortIndicator,
-        _uiTableHeaderOnClicked,
-        _uiTableColumnWidth,
-        _uiTableColumnSetWidth,
-        _uiTableGetSelectionMode,
-        _uiTableSetSelectionMode,
-        _uiTableOnSelectionChanged,
-        _uiTableGetSelection,
-        _uiTableSetSelection,
-        _uiFreeTableSelection
+        uiInit,
+        uiUninit,
+        uiFreeInitError,
+        uiMain,
+        uiMainSteps,
+        uiMainStep,
+        uiQuit,
+        uiQueueMain,
+        uiTimer,
+        uiOnShouldQuit,
+        uiFreeText,
+        uiControlDestroy,
+        uiControlHandle,
+        uiControlParent,
+        uiControlSetParent,
+        uiControlToplevel,
+        uiControlVisible,
+        uiControlShow,
+        uiControlHide,
+        uiControlEnabled,
+        uiControlEnable,
+        uiControlDisable,
+        uiAllocControl,
+        uiFreeControl,
+        uiControlVerifySetParent,
+        uiControlEnabledToUser,
+        uiUserBugCannotSetParentOnToplevel,
+        uiWindowTitle,
+        uiWindowSetTitle,
+        uiWindowPosition,
+        uiWindowSetPosition,
+        uiWindowOnPositionChanged,
+        uiWindowContentSize,
+        uiWindowSetContentSize,
+        uiWindowFullscreen,
+        uiWindowSetFullscreen,
+        uiWindowOnContentSizeChanged,
+        uiWindowOnClosing,
+        uiWindowOnFocusChanged,
+        uiWindowFocused,
+        uiWindowBorderless,
+        uiWindowSetBorderless,
+        uiWindowSetChild,
+        uiWindowMargined,
+        uiWindowSetMargined,
+        uiWindowResizeable,
+        uiWindowSetResizeable,
+        uiNewWindow,
+        uiButtonText,
+        uiButtonSetText,
+        uiButtonOnClicked,
+        uiNewButton,
+        uiBoxAppend,
+        uiBoxNumChildren,
+        uiBoxDelete,
+        uiBoxPadded,
+        uiBoxSetPadded,
+        uiNewHorizontalBox,
+        uiNewVerticalBox,
+        uiCheckboxText,
+        uiCheckboxSetText,
+        uiCheckboxOnToggled,
+        uiCheckboxChecked,
+        uiCheckboxSetChecked,
+        uiNewCheckbox,
+        uiEntryText,
+        uiEntrySetText,
+        uiEntryOnChanged,
+        uiEntryReadOnly,
+        uiEntrySetReadOnly,
+        uiNewEntry,
+        uiNewPasswordEntry,
+        uiNewSearchEntry,
+        uiLabelText,
+        uiLabelSetText,
+        uiNewLabel,
+        uiTabAppend,
+        uiTabInsertAt,
+        uiTabDelete,
+        uiTabNumPages,
+        uiTabMargined,
+        uiTabSetMargined,
+        uiNewTab,
+        uiGroupTitle,
+        uiGroupSetTitle,
+        uiGroupSetChild,
+        uiGroupMargined,
+        uiGroupSetMargined,
+        uiNewGroup,
+        uiSpinboxValue,
+        uiSpinboxSetValue,
+        uiSpinboxOnChanged,
+        uiNewSpinbox,
+        uiSliderValue,
+        uiSliderSetValue,
+        uiSliderHasToolTip,
+        uiSliderSetHasToolTip,
+        uiSliderOnChanged,
+        uiSliderOnReleased,
+        uiSliderSetRange,
+        uiNewSlider,
+        uiProgressBarValue,
+        uiProgressBarSetValue,
+        uiNewProgressBar,
+        uiNewHorizontalSeparator,
+        uiNewVerticalSeparator,
+        uiComboboxAppend,
+        uiComboboxInsertAt,
+        uiComboboxDelete,
+        uiComboboxClear,
+        uiComboboxNumItems,
+        uiComboboxSelected,
+        uiComboboxSetSelected,
+        uiComboboxOnSelected,
+        uiNewCombobox,
+        uiEditableComboboxAppend,
+        uiEditableComboboxText,
+        uiEditableComboboxSetText,
+        uiEditableComboboxOnChanged,
+        uiNewEditableCombobox,
+        uiRadioButtonsAppend,
+        uiRadioButtonsSelected,
+        uiRadioButtonsSetSelected,
+        uiRadioButtonsOnSelected,
+        uiNewRadioButtons,
+        uiDateTimePickerTime,
+        uiDateTimePickerSetTime,
+        uiDateTimePickerOnChanged,
+        uiNewDateTimePicker,
+        uiNewDatePicker,
+        uiNewTimePicker,
+        uiMultilineEntryText,
+        uiMultilineEntrySetText,
+        uiMultilineEntryAppend,
+        uiMultilineEntryOnChanged,
+        uiMultilineEntryReadOnly,
+        uiMultilineEntrySetReadOnly,
+        uiNewMultilineEntry,
+        uiNewNonWrappingMultilineEntry,
+        uiMenuItemEnable,
+        uiMenuItemDisable,
+        uiMenuItemOnClicked,
+        uiMenuItemChecked,
+        uiMenuItemSetChecked,
+        uiMenuAppendItem,
+        uiMenuAppendCheckItem,
+        uiMenuAppendQuitItem,
+        uiMenuAppendPreferencesItem,
+        uiMenuAppendAboutItem,
+        uiMenuAppendSeparator,
+        uiNewMenu,
+        uiOpenFile,
+        uiOpenFolder,
+        uiSaveFile,
+        uiMsgBox,
+        uiMsgBoxError,
+        uiAreaSetSize,
+        uiAreaQueueRedrawAll,
+        uiAreaScrollTo,
+        uiAreaBeginUserWindowMove,
+        uiAreaBeginUserWindowResize,
+        uiNewArea,
+        uiNewScrollingArea,
+        uiDrawNewPath,
+        uiDrawFreePath,
+        uiDrawPathNewFigure,
+        uiDrawPathNewFigureWithArc,
+        uiDrawPathLineTo,
+        uiDrawPathArcTo,
+        uiDrawPathBezierTo,
+        uiDrawPathCloseFigure,
+        uiDrawPathAddRectangle,
+        uiDrawPathEnded,
+        uiDrawPathEnd,
+        uiDrawStroke,
+        uiDrawFill,
+        uiDrawMatrixSetIdentity,
+        uiDrawMatrixTranslate,
+        uiDrawMatrixScale,
+        uiDrawMatrixRotate,
+        uiDrawMatrixSkew,
+        uiDrawMatrixMultiply,
+        uiDrawMatrixInvertible,
+        uiDrawMatrixInvert,
+        uiDrawMatrixTransformPoint,
+        uiDrawMatrixTransformSize,
+        uiDrawTransform,
+        uiDrawClip,
+        uiDrawSave,
+        uiDrawRestore,
+        uiFreeAttribute,
+        uiAttributeGetType,
+        uiNewFamilyAttribute,
+        uiAttributeFamily,
+        uiNewSizeAttribute,
+        uiAttributeSize,
+        uiNewWeightAttribute,
+        uiAttributeWeight,
+        uiNewItalicAttribute,
+        uiAttributeItalic,
+        uiNewStretchAttribute,
+        uiAttributeStretch,
+        uiNewColorAttribute,
+        uiAttributeColor,
+        uiNewBackgroundAttribute,
+        uiNewUnderlineAttribute,
+        uiAttributeUnderline,
+        uiNewUnderlineColorAttribute,
+        uiAttributeUnderlineColor,
+        uiNewOpenTypeFeatures,
+        uiFreeOpenTypeFeatures,
+        uiOpenTypeFeaturesClone,
+        uiOpenTypeFeaturesAdd,
+        uiOpenTypeFeaturesRemove,
+        uiOpenTypeFeaturesGet,
+        uiOpenTypeFeaturesForEach,
+        uiNewFeaturesAttribute,
+        uiAttributeFeatures,
+        uiNewAttributedString,
+        uiFreeAttributedString,
+        uiAttributedStringString,
+        uiAttributedStringLen,
+        uiAttributedStringAppendUnattributed,
+        uiAttributedStringInsertAtUnattributed,
+        uiAttributedStringDelete,
+        uiAttributedStringSetAttribute,
+        uiAttributedStringForEachAttribute,
+        uiAttributedStringNumGraphemes,
+        uiAttributedStringByteIndexToGrapheme,
+        uiAttributedStringGraphemeToByteIndex,
+        uiLoadControlFont,
+        uiFreeFontDescriptor,
+        uiDrawNewTextLayout,
+        uiDrawFreeTextLayout,
+        uiDrawText,
+        uiDrawTextLayoutExtents,
+        uiFontButtonFont,
+        uiFontButtonOnChanged,
+        uiNewFontButton,
+        uiFreeFontButtonFont,
+        uiColorButtonColor,
+        uiColorButtonSetColor,
+        uiColorButtonOnChanged,
+        uiNewColorButton,
+        uiFormAppend,
+        uiFormNumChildren,
+        uiFormDelete,
+        uiFormPadded,
+        uiFormSetPadded,
+        uiNewForm,
+        uiGridAppend,
+        uiGridInsertAt,
+        uiGridPadded,
+        uiGridSetPadded,
+        uiNewGrid,
+        uiNewImage,
+        uiFreeImage,
+        uiImageAppend,
+        uiFreeTableValue,
+        uiTableValueGetType,
+        uiNewTableValueString,
+        uiTableValueString,
+        uiNewTableValueImage,
+        uiTableValueImage,
+        uiNewTableValueInt,
+        uiTableValueInt,
+        uiNewTableValueColor,
+        uiTableValueColor,
+        uiNewTableModel,
+        uiFreeTableModel,
+        uiTableModelRowInserted,
+        uiTableModelRowChanged,
+        uiTableModelRowDeleted,
+        uiTableAppendTextColumn,
+        uiTableAppendImageColumn,
+        uiTableAppendCheckboxColumn,
+        uiTableAppendCheckboxTextColumn,
+        uiTableAppendProgressBarColumn,
+        uiTableAppendButtonColumn,
+        uiTableAppendImageTextColumn,
+        uiTableHeaderVisible,
+        uiTableHeaderSetVisible,
+        uiNewTable,
+        uiTableOnRowClicked,
+        uiTableOnRowDoubleClicked,
+        uiTableHeaderSetSortIndicator,
+        uiTableHeaderSortIndicator,
+        uiTableHeaderOnClicked,
+        uiTableColumnWidth,
+        uiTableColumnSetWidth,
+        uiTableGetSelectionMode,
+        uiTableSetSelectionMode,
+        uiTableOnSelectionChanged,
+        uiTableGetSelection,
+        uiTableSetSelection,
+        uiFreeTableSelection
     },
-} = cc({
-    source,
-    flags: '-Llibs',
-    library: ["libui"],
-    include: ["./libs/include"],
-    symbols: {
-        _uiInit: {
+} = dlopen(`./libs/libui.${suffix}`, {
+        uiInit: {
             args: [],
             returns: 'cstring',
         },
-        _uiUninit: {
+        uiUninit: {
             args: [],
             returns: 'ptr',
         },
-        _uiFreeInitError: {
+        uiFreeInitError: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiMain: {
+        uiMain: {
             args: [],
             returns: 'ptr',
         },
-        _uiMainSteps: {
+        uiMainSteps: {
             args: [],
             returns: 'ptr',
         },
-        _uiMainStep: {
+        uiMainStep: {
             args: ['i32'],
             returns: 'ptr',
         },
-        _uiQuit: {
+        uiQuit: {
             args: [],
             returns: 'ptr',
         },
-        _uiQueueMain: {
+        uiQueueMain: {
             args: [],
             returns: 'ptr',
         },
-        _uiTimer: {
+        uiTimer: {
             args: ['i32', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiOnShouldQuit: {
+        uiOnShouldQuit: {
             args: ['ptr', 'callback'],
             returns: 'void',
         },
-        _uiFreeText: {
+        uiFreeText: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlDestroy: {
+        uiControlDestroy: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlHandle: {
+        uiControlHandle: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlParent: {
+        uiControlParent: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlSetParent: {
+        uiControlSetParent: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiControlToplevel: {
+        uiControlToplevel: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlVisible: {
+        uiControlVisible: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlShow: {
+        uiControlShow: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlHide: {
+        uiControlHide: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlEnabled: {
+        uiControlEnabled: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlEnable: {
+        uiControlEnable: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlDisable: {
+        uiControlDisable: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiAllocControl: {
+        uiAllocControl: {
             args: ['ptr', 'i32', 'i32', 'cstring'],
             returns: 'ptr',
         },
-        _uiFreeControl: {
+        uiFreeControl: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiControlVerifySetParent: {
+        uiControlVerifySetParent: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiControlEnabledToUser: {
+        uiControlEnabledToUser: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiUserBugCannotSetParentOnToplevel: {
+        uiUserBugCannotSetParentOnToplevel: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiWindowTitle: {
+        uiWindowTitle: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiWindowSetTitle: {
+        uiWindowSetTitle: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiWindowPosition: {
+        uiWindowPosition: {
             args: ['ptr', 'ptr', 'ptr'],
             returns: 'void',
         },
-        _uiWindowSetPosition: {
+        uiWindowSetPosition: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiWindowOnPositionChanged: {
+        uiWindowOnPositionChanged: {
             args: ['ptr', 'ptr', 'ptr'],
             returns: 'void',
         },
-        _uiWindowContentSize: {
+        uiWindowContentSize: {
             args: ['ptr', 'ptr', 'ptr'],
             returns: 'void',
         },
-        _uiWindowSetContentSize: {
+        uiWindowSetContentSize: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'void',
         },
-        _uiWindowFullscreen: {
+        uiWindowFullscreen: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiWindowSetFullscreen: {
+        uiWindowSetFullscreen: {
             args: ['ptr', 'bool'],
             returns: 'ptr',
         },
-        _uiWindowOnContentSizeChanged: {
+        uiWindowOnContentSizeChanged: {
             args: ['ptr', 'ptr', 'ptr'],
             returns: 'void',
         },
-        _uiWindowOnClosing: {
+        uiWindowOnClosing: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiWindowOnFocusChanged: {
+        uiWindowOnFocusChanged: {
             args: ['ptr', 'ptr', 'ptr'],
             returns: 'void',
         },
-        _uiWindowFocused: {
+        uiWindowFocused: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiWindowBorderless: {
+        uiWindowBorderless: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiWindowSetBorderless: {
+        uiWindowSetBorderless: {
             args: ['ptr', 'bool'],
             returns: 'ptr',
         },
-        _uiWindowSetChild: {
+        uiWindowSetChild: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiWindowMargined: {
+        uiWindowMargined: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiWindowSetMargined: {
+        uiWindowSetMargined: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiWindowResizeable: {
+        uiWindowResizeable: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiWindowSetResizeable: {
+        uiWindowSetResizeable: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiNewWindow: {
+        uiNewWindow: {
             args: ['cstring', 'i32', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiButtonText: {
+        uiButtonText: {
             args: ['ptr'],
             returns: 'cstring',
         },
-        _uiButtonSetText: {
+        uiButtonSetText: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiButtonOnClicked: {
+        uiButtonOnClicked: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewButton: {
+        uiNewButton: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiBoxAppend: {
+        uiBoxAppend: {
             args: ['ptr', 'ptr', 'bool'],
             returns: 'ptr',
         },
-        _uiBoxNumChildren: {
+        uiBoxNumChildren: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiBoxDelete: {
+        uiBoxDelete: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiBoxPadded: {
+        uiBoxPadded: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiBoxSetPadded: {
+        uiBoxSetPadded: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiNewHorizontalBox: {
+        uiNewHorizontalBox: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewVerticalBox: {
+        uiNewVerticalBox: {
             args: [],
             returns: 'ptr',
         },
-        _uiCheckboxText: {
+        uiCheckboxText: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiCheckboxSetText: {
+        uiCheckboxSetText: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiCheckboxOnToggled: {
+        uiCheckboxOnToggled: {
             args: ['ptr', 'callback'],
             returns: 'ptr',
         },
-        _uiCheckboxChecked: {
+        uiCheckboxChecked: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiCheckboxSetChecked: {
+        uiCheckboxSetChecked: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiNewCheckbox: {
+        uiNewCheckbox: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiEntryText: {
+        uiEntryText: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiEntrySetText: {
+        uiEntrySetText: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiEntryOnChanged: {
+        uiEntryOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'ptr',
         },
-        _uiEntryReadOnly: {
+        uiEntryReadOnly: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiEntrySetReadOnly: {
+        uiEntrySetReadOnly: {
             args: ['ptr', 'bool'],
             returns: 'ptr',
         },
-        _uiNewEntry: {
+        uiNewEntry: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewPasswordEntry: {
+        uiNewPasswordEntry: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewSearchEntry: {
+        uiNewSearchEntry: {
             args: [],
             returns: 'ptr',
         },
-        _uiLabelText: {
+        uiLabelText: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiLabelSetText: {
+        uiLabelSetText: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiNewLabel: {
+        uiNewLabel: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiTabAppend: {
+        uiTabAppend: {
             args: ['ptr', 'cstring', 'ptr'],
             returns: 'ptr',
         },
-        _uiTabInsertAt: {
+        uiTabInsertAt: {
             args: ['ptr', 'cstring', 'i32', 'ptr'],
             returns: 'ptr',
         },
-        _uiTabDelete: {
+        uiTabDelete: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiTabNumPages: {
+        uiTabNumPages: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiTabMargined: {
+        uiTabMargined: {
             args: ['ptr', 'i32'],
             returns: 'i32',
         },
-        _uiTabSetMargined: {
+        uiTabSetMargined: {
             args: ['ptr', 'i32', 'bool'],
             returns: 'ptr',
         },
-        _uiNewTab: {
+        uiNewTab: {
             args: [],
             returns: 'ptr',
         },
-        _uiGroupTitle: {
+        uiGroupTitle: {
             args: ['ptr'],
             returns: 'cstring',
         },
-        _uiGroupSetTitle: {
+        uiGroupSetTitle: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiGroupSetChild: {
+        uiGroupSetChild: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiGroupMargined: {
+        uiGroupMargined: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiGroupSetMargined: {
+        uiGroupSetMargined: {
             args: ['ptr', 'bool'],
             returns: 'void',
         },
-        _uiNewGroup: {
+        uiNewGroup: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiSpinboxValue: {
+        uiSpinboxValue: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiSpinboxSetValue: {
+        uiSpinboxSetValue: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiSpinboxOnChanged: {
+        uiSpinboxOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewSpinbox: {
+        uiNewSpinbox: {
             args: ['i32', 'i32'],
             returns: 'ptr',
         },
-        _uiSliderValue: {
+        uiSliderValue: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiSliderSetValue: {
+        uiSliderSetValue: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiSliderHasToolTip: {
+        uiSliderHasToolTip: {
             args: ['ptr'],
             returns: 'bool',
         },
-        _uiSliderSetHasToolTip: {
+        uiSliderSetHasToolTip: {
             args: ['ptr', 'bool'],
             returns: 'ptr',
         },
-        _uiSliderOnChanged: {
+        uiSliderOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'ptr',
         },
-        _uiSliderOnReleased: {
+        uiSliderOnReleased: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'ptr',
         },
-        _uiSliderSetRange: {
+        uiSliderSetRange: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiNewSlider: {
+        uiNewSlider: {
             args: ['i32', 'i32'],
             returns: 'ptr',
         },
-        _uiProgressBarValue: {
+        uiProgressBarValue: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiProgressBarSetValue: {
+        uiProgressBarSetValue: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiNewProgressBar: {
+        uiNewProgressBar: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewHorizontalSeparator: {
+        uiNewHorizontalSeparator: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewVerticalSeparator: {
+        uiNewVerticalSeparator: {
             args: [],
             returns: 'ptr',
         },
-        _uiComboboxAppend: {
+        uiComboboxAppend: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiComboboxInsertAt: {
+        uiComboboxInsertAt: {
             args: ['ptr', 'i32', 'cstring'],
             returns: 'ptr',
         },
-        _uiComboboxDelete: {
+        uiComboboxDelete: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiComboboxClear: {
+        uiComboboxClear: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiComboboxNumItems: {
+        uiComboboxNumItems: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiComboboxSelected: {
+        uiComboboxSelected: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiComboboxSetSelected: {
+        uiComboboxSetSelected: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiComboboxOnSelected: {
+        uiComboboxOnSelected: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewCombobox: {
+        uiNewCombobox: {
             args: [],
             returns: 'ptr',
         },
-        _uiEditableComboboxAppend: {
+        uiEditableComboboxAppend: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiEditableComboboxText: {
+        uiEditableComboboxText: {
             args: ['ptr'],
             returns: 'cstring',
         },
-        _uiEditableComboboxSetText: {
+        uiEditableComboboxSetText: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiEditableComboboxOnChanged: {
+        uiEditableComboboxOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewEditableCombobox: {
+        uiNewEditableCombobox: {
             args: [],
             returns: 'ptr',
         },
-        _uiRadioButtonsAppend: {
+        uiRadioButtonsAppend: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiRadioButtonsSelected: {
+        uiRadioButtonsSelected: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiRadioButtonsSetSelected: {
+        uiRadioButtonsSetSelected: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiRadioButtonsOnSelected: {
+        uiRadioButtonsOnSelected: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewRadioButtons: {
+        uiNewRadioButtons: {
             args: [],
             returns: 'ptr',
         },
-        _uiDateTimePickerTime: {
+        uiDateTimePickerTime: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiDateTimePickerSetTime: {
+        uiDateTimePickerSetTime: {
             args: ['ptr', 'ptr'],
             returns: 'void',
         },
-        _uiDateTimePickerOnChanged: {
+        uiDateTimePickerOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewDateTimePicker: {
+        uiNewDateTimePicker: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewDatePicker: {
+        uiNewDatePicker: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewTimePicker: {
+        uiNewTimePicker: {
             args: [],
             returns: 'ptr',
         },
-        _uiMultilineEntryText: {
+        uiMultilineEntryText: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMultilineEntrySetText: {
+        uiMultilineEntrySetText: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiMultilineEntryAppend: {
+        uiMultilineEntryAppend: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiMultilineEntryOnChanged: {
+        uiMultilineEntryOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiMultilineEntryReadOnly: {
+        uiMultilineEntryReadOnly: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiMultilineEntrySetReadOnly: {
+        uiMultilineEntrySetReadOnly: {
             args: ['ptr', 'bool'],
             returns: 'void',
         },
-        _uiNewMultilineEntry: {
+        uiNewMultilineEntry: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewNonWrappingMultilineEntry: {
+        uiNewNonWrappingMultilineEntry: {
             args: [],
             returns: 'ptr',
         },
-        _uiMenuItemEnable: {
+        uiMenuItemEnable: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMenuItemDisable: {
+        uiMenuItemDisable: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMenuItemOnClicked: {
+        uiMenuItemOnClicked: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiMenuItemChecked: {
+        uiMenuItemChecked: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMenuItemSetChecked: {
+        uiMenuItemSetChecked: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiMenuAppendItem: {
+        uiMenuAppendItem: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiMenuAppendCheckItem: {
+        uiMenuAppendCheckItem: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiMenuAppendQuitItem: {
+        uiMenuAppendQuitItem: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMenuAppendPreferencesItem: {
+        uiMenuAppendPreferencesItem: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMenuAppendAboutItem: {
+        uiMenuAppendAboutItem: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMenuAppendSeparator: {
+        uiMenuAppendSeparator: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewMenu: {
+        uiNewMenu: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiOpenFile: {
+        uiOpenFile: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiOpenFolder: {
+        uiOpenFolder: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiSaveFile: {
+        uiSaveFile: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiMsgBox: {
+        uiMsgBox: {
             args: ['ptr', 'cstring', 'cstring'],
             returns: 'ptr',
         },
-        _uiMsgBoxError: {
+        uiMsgBoxError: {
             args: ['ptr', 'cstring', 'cstring'],
             returns: 'ptr',
         },
-        _uiAreaSetSize: {
+        uiAreaSetSize: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiAreaQueueRedrawAll: {
+        uiAreaQueueRedrawAll: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiAreaScrollTo: {
+        uiAreaScrollTo: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiAreaBeginUserWindowMove: {
+        uiAreaBeginUserWindowMove: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiAreaBeginUserWindowResize: {
+        uiAreaBeginUserWindowResize: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiNewArea: {
+        uiNewArea: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewScrollingArea: {
+        uiNewScrollingArea: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiDrawNewPath: {
+        uiDrawNewPath: {
             args: ['int'],
             returns: 'ptr',
         },
-        _uiDrawFreePath: {
+        uiDrawFreePath: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiDrawPathNewFigure: {
+        uiDrawPathNewFigure: {
             args: ['ptr', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiDrawPathNewFigureWithArc: {
+        uiDrawPathNewFigureWithArc: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64', 'f64', 'i32'],
             returns: 'void',
         },
-        _uiDrawPathLineTo: {
+        uiDrawPathLineTo: {
             args: ['ptr', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiDrawPathArcTo: {
+        uiDrawPathArcTo: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64', 'f64', 'i32'],
             returns: 'void',
         },
-        _uiDrawPathBezierTo: {
+        uiDrawPathBezierTo: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiDrawPathCloseFigure: {
+        uiDrawPathCloseFigure: {
             args: ['ptr'],
             returns: 'void',
         },
-        _uiDrawPathAddRectangle: {
+        uiDrawPathAddRectangle: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiDrawPathEnded: {
+        uiDrawPathEnded: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiDrawPathEnd: {
+        uiDrawPathEnd: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiDrawStroke: {
+        uiDrawStroke: {
             args: ['ptr', 'ptr', 'ptr', 'ptr'],
             returns: 'void',
         },
-        _uiDrawFill: {
+        uiDrawFill: {
             args: ['ptr', 'ptr', 'ptr'],
             returns: 'void',
         },
-        _uiDrawMatrixSetIdentity: {
+        uiDrawMatrixSetIdentity: {
             args: ['ptr'],
             returns: 'void',
         },
-        _uiDrawMatrixTranslate: {
+        uiDrawMatrixTranslate: {
             args: ['ptr', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiDrawMatrixScale: {
+        uiDrawMatrixScale: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiDrawMatrixRotate: {
+        uiDrawMatrixRotate: {
             args: ['ptr', 'f64', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiDrawMatrixSkew: {
+        uiDrawMatrixSkew: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiDrawMatrixMultiply: {
+        uiDrawMatrixMultiply: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiDrawMatrixInvertible: {
+        uiDrawMatrixInvertible: {
             args: ['ptr'],
             returns: 'bool',
         },
-        _uiDrawMatrixInvert: {
+        uiDrawMatrixInvert: {
             args: ['ptr'],
             returns: 'bool',
         },
-        _uiDrawMatrixTransformPoint: {
+        uiDrawMatrixTransformPoint: {
             args: ['ptr', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiDrawMatrixTransformSize: {
+        uiDrawMatrixTransformSize: {
             args: ['ptr', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiDrawTransform: {
+        uiDrawTransform: {
             args: ['ptr', 'ptr'],
             returns: 'void',
         },
-        _uiDrawClip: {
+        uiDrawClip: {
             args: ['ptr', 'ptr'],
             returns: 'void',
         },
-        _uiDrawSave: {
+        uiDrawSave: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiDrawRestore: {
+        uiDrawRestore: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiFreeAttribute: {
+        uiFreeAttribute: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiAttributeGetType: {
+        uiAttributeGetType: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewFamilyAttribute: {
+        uiNewFamilyAttribute: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiAttributeFamily: {
+        uiAttributeFamily: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewSizeAttribute: {
+        uiNewSizeAttribute: {
             args: ['f64'],
             returns: 'ptr',
         },
-        _uiAttributeSize: {
+        uiAttributeSize: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewWeightAttribute: {
+        uiNewWeightAttribute: {
             args: ['i32'],
             returns: 'ptr',
         },
-        _uiAttributeWeight: {
+        uiAttributeWeight: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewItalicAttribute: {
+        uiNewItalicAttribute: {
             args: ['i32'],
             returns: 'ptr',
         },
-        _uiAttributeItalic: {
+        uiAttributeItalic: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewStretchAttribute: {
+        uiNewStretchAttribute: {
             args: ['i32'],
             returns: 'ptr',
         },
-        _uiAttributeStretch: {
+        uiAttributeStretch: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewColorAttribute: {
+        uiNewColorAttribute: {
             args: ['f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiAttributeColor: {
+        uiAttributeColor: {
             args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiNewBackgroundAttribute: {
+        uiNewBackgroundAttribute: {
             args: ['f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiNewUnderlineAttribute: {
+        uiNewUnderlineAttribute: {
             args: ['i32'],
             returns: 'ptr',
         },
-        _uiAttributeUnderline: {
+        uiAttributeUnderline: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewUnderlineColorAttribute: {
+        uiNewUnderlineColorAttribute: {
             args: ['i32', 'f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiAttributeUnderlineColor: {
+        uiAttributeUnderlineColor: {
             args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiNewOpenTypeFeatures: {
+        uiNewOpenTypeFeatures: {
             args: [],
             returns: 'ptr',
         },
-        _uiFreeOpenTypeFeatures: {
+        uiFreeOpenTypeFeatures: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiOpenTypeFeaturesClone: {
+        uiOpenTypeFeaturesClone: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiOpenTypeFeaturesAdd: {
+        uiOpenTypeFeaturesAdd: {
             args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiOpenTypeFeaturesRemove: {
+        uiOpenTypeFeaturesRemove: {
             args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiOpenTypeFeaturesGet: {
+        uiOpenTypeFeaturesGet: {
             args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiOpenTypeFeaturesForEach: {
+        uiOpenTypeFeaturesForEach: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiNewFeaturesAttribute: {
+        uiNewFeaturesAttribute: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiAttributeFeatures: {
+        uiAttributeFeatures: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewAttributedString: {
+        uiNewAttributedString: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiFreeAttributedString: {
+        uiFreeAttributedString: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiAttributedStringString: {
+        uiAttributedStringString: {
             args: ['ptr'],
             returns: 'cstring',
         },
-        _uiAttributedStringLen: {
+        uiAttributedStringLen: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiAttributedStringAppendUnattributed: {
+        uiAttributedStringAppendUnattributed: {
             args: ['ptr', 'cstring'],
             returns: 'ptr',
         },
-        _uiAttributedStringInsertAtUnattributed: {
+        uiAttributedStringInsertAtUnattributed: {
             args: ['ptr', 'cstring', 'i32'],
             returns: 'ptr',
         },
-        _uiAttributedStringDelete: {
+        uiAttributedStringDelete: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiAttributedStringSetAttribute: {
+        uiAttributedStringSetAttribute: {
             args: ['ptr', 'ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiAttributedStringForEachAttribute: {
+        uiAttributedStringForEachAttribute: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiAttributedStringNumGraphemes: {
+        uiAttributedStringNumGraphemes: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiAttributedStringByteIndexToGrapheme: {
+        uiAttributedStringByteIndexToGrapheme: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiAttributedStringGraphemeToByteIndex: {
+        uiAttributedStringGraphemeToByteIndex: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiLoadControlFont: {
+        uiLoadControlFont: {
             args: ['ptr'],
             returns: 'void',
         },
-        _uiFreeFontDescriptor: {
+        uiFreeFontDescriptor: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiDrawNewTextLayout: {
+        uiDrawNewTextLayout: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiDrawFreeTextLayout: {
+        uiDrawFreeTextLayout: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiDrawText: {
+        uiDrawText: {
             args: ['ptr', 'ptr', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiDrawTextLayoutExtents: {
+        uiDrawTextLayoutExtents: {
             args: ['ptr', 'ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiFontButtonFont: {
+        uiFontButtonFont: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiFontButtonOnChanged: {
+        uiFontButtonOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewFontButton: {
+        uiNewFontButton: {
             args: [],
             returns: 'ptr',
         },
-        _uiFreeFontButtonFont: {
+        uiFreeFontButtonFont: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiColorButtonColor: {
+        uiColorButtonColor: {
             args: ['ptr', 'ptr', 'ptr', 'ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiColorButtonSetColor: {
+        uiColorButtonSetColor: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'void',
         },
-        _uiColorButtonOnChanged: {
+        uiColorButtonOnChanged: {
             args: ['ptr', 'callback', 'ptr'],
             returns: 'void',
         },
-        _uiNewColorButton: {
+        uiNewColorButton: {
             args: [],
             returns: 'ptr',
         },
-        _uiFormAppend: {
+        uiFormAppend: {
             args: ['ptr', 'cstring', 'ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiFormNumChildren: {
+        uiFormNumChildren: {
             args: ['ptr'],
             returns: 'int',
         },
-        _uiFormDelete: {
+        uiFormDelete: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiFormPadded: {
+        uiFormPadded: {
             args: ['ptr'],
             returns: 'bool',
         },
-        _uiFormSetPadded: {
+        uiFormSetPadded: {
             args: ['ptr', 'bool'],
             returns: 'ptr',
         },
-        _uiNewForm: {
+        uiNewForm: {
             args: [],
             returns: 'ptr',
         },
-        _uiGridAppend: {
+        uiGridAppend: {
             args: ['ptr', 'ptr', 'i32', 'i32', 'i32', 'i32', 'i32', 'i32', 'i32', 'i32'],
             returns: 'void',
         },
-        _uiGridInsertAt: {
+        uiGridInsertAt: {
             args: ['ptr', 'ptr', 'ptr', 'i32', 'i32', 'i32', 'i32', 'i32', 'i32', 'i32'],
             returns: 'void',
         },
-        _uiGridPadded: {
+        uiGridPadded: {
             args: ['ptr'],
             returns: 'bool',
         },
-        _uiGridSetPadded: {
+        uiGridSetPadded: {
             args: ['ptr', 'bool'],
             returns: 'void',
         },
-        _uiNewGrid: {
+        uiNewGrid: {
             args: [],
             returns: 'ptr',
         },
-        _uiNewImage: {
+        uiNewImage: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiFreeImage: {
+        uiFreeImage: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiImageAppend: {
+        uiImageAppend: {
             args: ['ptr', 'i32', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiFreeTableValue: {
+        uiFreeTableValue: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiTableValueGetType: {
+        uiTableValueGetType: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewTableValueString: {
+        uiNewTableValueString: {
             args: ['cstring'],
             returns: 'ptr',
         },
-        _uiTableValueString: {
+        uiTableValueString: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewTableValueImage: {
+        uiNewTableValueImage: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiTableValueImage: {
+        uiTableValueImage: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiNewTableValueInt: {
+        uiNewTableValueInt: {
             args: ['i32'],
             returns: 'ptr',
         },
-        _uiTableValueInt: {
+        uiTableValueInt: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiNewTableValueColor: {
+        uiNewTableValueColor: {
             args: ['f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiTableValueColor: {
+        uiTableValueColor: {
             args: ['ptr', 'f64', 'f64', 'f64', 'f64'],
             returns: 'ptr',
         },
-        _uiNewTableModel: {
+        uiNewTableModel: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiFreeTableModel: {
+        uiFreeTableModel: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiTableModelRowInserted: {
+        uiTableModelRowInserted: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiTableModelRowChanged: {
+        uiTableModelRowChanged: {
             args: ['ptr', 'i32'],
             returns: 'ptr',
         },
-        _uiTableModelRowDeleted: {
+        uiTableModelRowDeleted: {
             args: ['ptr', 'i32'],
             returns: 'void',
         },
-        _uiTableAppendTextColumn: {
+        uiTableAppendTextColumn: {
             args: ['ptr', 'cstring', 'i32', 'i32', 'ptr'],
             returns: 'ptr',
         },
-        _uiTableAppendImageColumn: {
+        uiTableAppendImageColumn: {
             args: ['ptr', 'cstring', 'i32'],
             returns: 'ptr',
         },
-        _uiTableAppendCheckboxColumn: {
+        uiTableAppendCheckboxColumn: {
             args: ['ptr', 'cstring', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiTableAppendCheckboxTextColumn: {
+        uiTableAppendCheckboxTextColumn: {
             args: ['ptr', 'cstring', 'i32', 'i32', 'i32', 'i32', 'ptr'],
             returns: 'ptr',
         },
-        _uiTableAppendProgressBarColumn: {
+        uiTableAppendProgressBarColumn: {
             args: ['ptr', 'cstring', 'i32'],
             returns: 'ptr',
         },
-        _uiTableAppendButtonColumn: {
+        uiTableAppendButtonColumn: {
             args: ['ptr', 'cstring', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiTableAppendImageTextColumn: {
+        uiTableAppendImageTextColumn: {
             args: ['ptr', 'cstring', 'i32', 'i32', 'i32', 'ptr'],
             returns: 'ptr',
         },
-        _uiTableHeaderVisible: {
+        uiTableHeaderVisible: {
             args: ['ptr'],
             returns: 'bool',
         },
-        _uiTableHeaderSetVisible: {
+        uiTableHeaderSetVisible: {
             args: ['ptr', 'bool'],
             returns: 'ptr',
         },
-        _uiNewTable: {
+        uiNewTable: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiTableOnRowClicked: {
+        uiTableOnRowClicked: {
             args: ['ptr', 'callback'],
             returns: 'void',
         },
-        _uiTableOnRowDoubleClicked: {
+        uiTableOnRowDoubleClicked: {
             args: ['ptr', 'callback'],
             returns: 'void',
         },
-        _uiTableHeaderSetSortIndicator: {
+        uiTableHeaderSetSortIndicator: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiTableHeaderSortIndicator: {
+        uiTableHeaderSortIndicator: {
             args: ['ptr', 'i32'],
             returns: 'i32',
         },
-        _uiTableHeaderOnClicked: {
+        uiTableHeaderOnClicked: {
             args: ['ptr', 'callback'],
             returns: 'void',
         },
-        _uiTableColumnWidth: {
+        uiTableColumnWidth: {
             args: ['ptr', 'i32'],
             returns: 'i32',
         },
-        _uiTableColumnSetWidth: {
+        uiTableColumnSetWidth: {
             args: ['ptr', 'i32', 'i32'],
             returns: 'ptr',
         },
-        _uiTableGetSelectionMode: {
+        uiTableGetSelectionMode: {
             args: ['ptr'],
             returns: 'i32',
         },
-        _uiTableSetSelectionMode: {
+        uiTableSetSelectionMode: {
             args: ['ptr', 'i32'],
             returns: 'void',
         },
-        _uiTableOnSelectionChanged: {
+        uiTableOnSelectionChanged: {
             args: ['ptr', 'callback'],
             returns: 'void',
         },
-        _uiTableGetSelection: {
+        uiTableGetSelection: {
             args: ['ptr'],
             returns: 'ptr',
         },
-        _uiTableSetSelection: {
+        uiTableSetSelection: {
             args: ['ptr', 'ptr'],
             returns: 'ptr',
         },
-        _uiFreeTableSelection: {
+        uiFreeTableSelection: {
             args: ['ptr'],
             returns: 'ptr',
         }
-    },
+    //},
 });
 
 export {
-    _uiInit,
-    _uiUninit,
-    _uiFreeInitError,
-    _uiMain,
-    _uiMainSteps,
-    _uiMainStep,
-    _uiQuit,
-    _uiQueueMain,
-    _uiTimer,
-    _uiOnShouldQuit,
-    _uiFreeText,
-    _uiControlDestroy,
-    _uiControlHandle,
-    _uiControlParent,
-    _uiControlSetParent,
-    _uiControlToplevel,
-    _uiControlVisible,
-    _uiControlShow,
-    _uiControlHide,
-    _uiControlEnabled,
-    _uiControlEnable,
-    _uiControlDisable,
-    _uiAllocControl,
-    _uiFreeControl,
-    _uiControlVerifySetParent,
-    _uiControlEnabledToUser,
-    _uiUserBugCannotSetParentOnToplevel,
-    _uiWindowTitle,
-    _uiWindowSetTitle,
-    _uiWindowPosition,
-    _uiWindowSetPosition,
-    _uiWindowOnPositionChanged,
-    _uiWindowContentSize,
-    _uiWindowSetContentSize,
-    _uiWindowFullscreen,
-    _uiWindowSetFullscreen,
-    _uiWindowOnContentSizeChanged,
-    _uiWindowOnClosing,
-    _uiWindowOnFocusChanged,
-    _uiWindowFocused,
-    _uiWindowBorderless,
-    _uiWindowSetBorderless,
-    _uiWindowSetChild,
-    _uiWindowMargined,
-    _uiWindowSetMargined,
-    _uiWindowResizeable,
-    _uiWindowSetResizeable,
-    _uiNewWindow,
-    _uiButtonText,
-    _uiButtonSetText,
-    _uiButtonOnClicked,
-    _uiNewButton,
-    _uiBoxAppend,
-    _uiBoxNumChildren,
-    _uiBoxDelete,
-    _uiBoxPadded,
-    _uiBoxSetPadded,
-    _uiNewHorizontalBox,
-    _uiNewVerticalBox,
-    _uiCheckboxText,
-    _uiCheckboxSetText,
-    _uiCheckboxOnToggled,
-    _uiCheckboxChecked,
-    _uiCheckboxSetChecked,
-    _uiNewCheckbox,
-    _uiEntryText,
-    _uiEntrySetText,
-    _uiEntryOnChanged,
-    _uiEntryReadOnly,
-    _uiEntrySetReadOnly,
-    _uiNewEntry,
-    _uiNewPasswordEntry,
-    _uiNewSearchEntry,
-    _uiLabelText,
-    _uiLabelSetText,
-    _uiNewLabel,
-    _uiTabAppend,
-    _uiTabInsertAt,
-    _uiTabDelete,
-    _uiTabNumPages,
-    _uiTabMargined,
-    _uiTabSetMargined,
-    _uiNewTab,
-    _uiGroupTitle,
-    _uiGroupSetTitle,
-    _uiGroupSetChild,
-    _uiGroupMargined,
-    _uiGroupSetMargined,
-    _uiNewGroup,
-    _uiSpinboxValue,
-    _uiSpinboxSetValue,
-    _uiSpinboxOnChanged,
-    _uiNewSpinbox,
-    _uiSliderValue,
-    _uiSliderSetValue,
-    _uiSliderHasToolTip,
-    _uiSliderSetHasToolTip,
-    _uiSliderOnChanged,
-    _uiSliderOnReleased,
-    _uiSliderSetRange,
-    _uiNewSlider,
-    _uiProgressBarValue,
-    _uiProgressBarSetValue,
-    _uiNewProgressBar,
-    _uiNewHorizontalSeparator,
-    _uiNewVerticalSeparator,
-    _uiComboboxAppend,
-    _uiComboboxInsertAt,
-    _uiComboboxDelete,
-    _uiComboboxClear,
-    _uiComboboxNumItems,
-    _uiComboboxSelected,
-    _uiComboboxSetSelected,
-    _uiComboboxOnSelected,
-    _uiNewCombobox,
-    _uiEditableComboboxAppend,
-    _uiEditableComboboxText,
-    _uiEditableComboboxSetText,
-    _uiEditableComboboxOnChanged,
-    _uiNewEditableCombobox,
-    _uiRadioButtonsAppend,
-    _uiRadioButtonsSelected,
-    _uiRadioButtonsSetSelected,
-    _uiRadioButtonsOnSelected,
-    _uiNewRadioButtons,
-    _uiDateTimePickerTime,
-    _uiDateTimePickerSetTime,
-    _uiDateTimePickerOnChanged,
-    _uiNewDateTimePicker,
-    _uiNewDatePicker,
-    _uiNewTimePicker,
-    _uiMultilineEntryText,
-    _uiMultilineEntrySetText,
-    _uiMultilineEntryAppend,
-    _uiMultilineEntryOnChanged,
-    _uiMultilineEntryReadOnly,
-    _uiMultilineEntrySetReadOnly,
-    _uiNewMultilineEntry,
-    _uiNewNonWrappingMultilineEntry,
-    _uiMenuItemEnable,
-    _uiMenuItemDisable,
-    _uiMenuItemOnClicked,
-    _uiMenuItemChecked,
-    _uiMenuItemSetChecked,
-    _uiMenuAppendItem,
-    _uiMenuAppendCheckItem,
-    _uiMenuAppendQuitItem,
-    _uiMenuAppendPreferencesItem,
-    _uiMenuAppendAboutItem,
-    _uiMenuAppendSeparator,
-    _uiNewMenu,
-    _uiOpenFile,
-    _uiOpenFolder,
-    _uiSaveFile,
-    _uiMsgBox,
-    _uiMsgBoxError,
-    _uiAreaSetSize,
-    _uiAreaQueueRedrawAll,
-    _uiAreaScrollTo,
-    _uiAreaBeginUserWindowMove,
-    _uiAreaBeginUserWindowResize,
-    _uiNewArea,
-    _uiNewScrollingArea,
-    _uiDrawNewPath,
-    _uiDrawFreePath,
-    _uiDrawPathNewFigure,
-    _uiDrawPathNewFigureWithArc,
-    _uiDrawPathLineTo,
-    _uiDrawPathArcTo,
-    _uiDrawPathBezierTo,
-    _uiDrawPathCloseFigure,
-    _uiDrawPathAddRectangle,
-    _uiDrawPathEnded,
-    _uiDrawPathEnd,
-    _uiDrawStroke,
-    _uiDrawFill,
-    _uiDrawMatrixSetIdentity,
-    _uiDrawMatrixTranslate,
-    _uiDrawMatrixScale,
-    _uiDrawMatrixRotate,
-    _uiDrawMatrixSkew,
-    _uiDrawMatrixMultiply,
-    _uiDrawMatrixInvertible,
-    _uiDrawMatrixInvert,
-    _uiDrawMatrixTransformPoint,
-    _uiDrawMatrixTransformSize,
-    _uiDrawTransform,
-    _uiDrawClip,
-    _uiDrawSave,
-    _uiDrawRestore,
-    _uiFreeAttribute,
-    _uiAttributeGetType,
-    _uiNewFamilyAttribute,
-    _uiAttributeFamily,
-    _uiNewSizeAttribute,
-    _uiAttributeSize,
-    _uiNewWeightAttribute,
-    _uiAttributeWeight,
-    _uiNewItalicAttribute,
-    _uiAttributeItalic,
-    _uiNewStretchAttribute,
-    _uiAttributeStretch,
-    _uiNewColorAttribute,
-    _uiAttributeColor,
-    _uiNewBackgroundAttribute,
-    _uiNewUnderlineAttribute,
-    _uiAttributeUnderline,
-    _uiNewUnderlineColorAttribute,
-    _uiAttributeUnderlineColor,
-    _uiNewOpenTypeFeatures,
-    _uiFreeOpenTypeFeatures,
-    _uiOpenTypeFeaturesClone,
-    _uiOpenTypeFeaturesAdd,
-    _uiOpenTypeFeaturesRemove,
-    _uiOpenTypeFeaturesGet,
-    _uiOpenTypeFeaturesForEach,
-    _uiNewFeaturesAttribute,
-    _uiAttributeFeatures,
-    _uiNewAttributedString,
-    _uiFreeAttributedString,
-    _uiAttributedStringString,
-    _uiAttributedStringLen,
-    _uiAttributedStringAppendUnattributed,
-    _uiAttributedStringInsertAtUnattributed,
-    _uiAttributedStringDelete,
-    _uiAttributedStringSetAttribute,
-    _uiAttributedStringForEachAttribute,
-    _uiAttributedStringNumGraphemes,
-    _uiAttributedStringByteIndexToGrapheme,
-    _uiAttributedStringGraphemeToByteIndex,
-    _uiLoadControlFont,
-    _uiFreeFontDescriptor,
-    _uiDrawNewTextLayout,
-    _uiDrawFreeTextLayout,
-    _uiDrawText,
-    _uiDrawTextLayoutExtents,
-    _uiFontButtonFont,
-    _uiFontButtonOnChanged,
-    _uiNewFontButton,
-    _uiFreeFontButtonFont,
-    _uiColorButtonColor,
-    _uiColorButtonSetColor,
-    _uiColorButtonOnChanged,
-    _uiNewColorButton,
-    _uiFormAppend,
-    _uiFormNumChildren,
-    _uiFormDelete,
-    _uiFormPadded,
-    _uiFormSetPadded,
-    _uiNewForm,
-    _uiGridAppend,
-    _uiGridInsertAt,
-    _uiGridPadded,
-    _uiGridSetPadded,
-    _uiNewGrid,
-    _uiNewImage,
-    _uiFreeImage,
-    _uiImageAppend,
-    _uiFreeTableValue,
-    _uiTableValueGetType,
-    _uiNewTableValueString,
-    _uiTableValueString,
-    _uiNewTableValueImage,
-    _uiTableValueImage,
-    _uiNewTableValueInt,
-    _uiTableValueInt,
-    _uiNewTableValueColor,
-    _uiTableValueColor,
-    _uiNewTableModel,
-    _uiFreeTableModel,
-    _uiTableModelRowInserted,
-    _uiTableModelRowChanged,
-    _uiTableModelRowDeleted,
-    _uiTableAppendTextColumn,
-    _uiTableAppendImageColumn,
-    _uiTableAppendCheckboxColumn,
-    _uiTableAppendCheckboxTextColumn,
-    _uiTableAppendProgressBarColumn,
-    _uiTableAppendButtonColumn,
-    _uiTableAppendImageTextColumn,
-    _uiTableHeaderVisible,
-    _uiTableHeaderSetVisible,
-    _uiNewTable,
-    _uiTableOnRowClicked,
-    _uiTableOnRowDoubleClicked,
-    _uiTableHeaderSetSortIndicator,
-    _uiTableHeaderSortIndicator,
-    _uiTableHeaderOnClicked,
-    _uiTableColumnWidth,
-    _uiTableColumnSetWidth,
-    _uiTableGetSelectionMode,
-    _uiTableSetSelectionMode,
-    _uiTableOnSelectionChanged,
-    _uiTableGetSelection,
-    _uiTableSetSelection,
-    _uiFreeTableSelection
-}
+    uiAllocControl as _uiAllocControl, uiAreaBeginUserWindowMove as _uiAreaBeginUserWindowMove,
+    uiAreaBeginUserWindowResize as _uiAreaBeginUserWindowResize, uiAreaQueueRedrawAll as _uiAreaQueueRedrawAll,
+    uiAreaScrollTo as _uiAreaScrollTo, uiAreaSetSize as _uiAreaSetSize, uiAttributeColor as _uiAttributeColor, uiAttributedStringAppendUnattributed as _uiAttributedStringAppendUnattributed, uiAttributedStringByteIndexToGrapheme as _uiAttributedStringByteIndexToGrapheme, uiAttributedStringDelete as _uiAttributedStringDelete, uiAttributedStringForEachAttribute as _uiAttributedStringForEachAttribute, uiAttributedStringGraphemeToByteIndex as _uiAttributedStringGraphemeToByteIndex, uiAttributedStringInsertAtUnattributed as _uiAttributedStringInsertAtUnattributed, uiAttributedStringLen as _uiAttributedStringLen, uiAttributedStringNumGraphemes as _uiAttributedStringNumGraphemes, uiAttributedStringSetAttribute as _uiAttributedStringSetAttribute, uiAttributedStringString as _uiAttributedStringString, uiAttributeFamily as _uiAttributeFamily, uiAttributeFeatures as _uiAttributeFeatures, uiAttributeGetType as _uiAttributeGetType, uiAttributeItalic as _uiAttributeItalic, uiAttributeSize as _uiAttributeSize, uiAttributeStretch as _uiAttributeStretch, uiAttributeUnderline as _uiAttributeUnderline, uiAttributeUnderlineColor as _uiAttributeUnderlineColor, uiAttributeWeight as _uiAttributeWeight, uiBoxAppend as _uiBoxAppend, uiBoxDelete as _uiBoxDelete, uiBoxNumChildren as _uiBoxNumChildren, uiBoxPadded as _uiBoxPadded,
+    uiBoxSetPadded as _uiBoxSetPadded, uiButtonOnClicked as _uiButtonOnClicked, uiButtonSetText as _uiButtonSetText, uiButtonText as _uiButtonText, uiCheckboxChecked as _uiCheckboxChecked, uiCheckboxOnToggled as _uiCheckboxOnToggled, uiCheckboxSetChecked as _uiCheckboxSetChecked, uiCheckboxSetText as _uiCheckboxSetText, uiCheckboxText as _uiCheckboxText, uiColorButtonColor as _uiColorButtonColor, uiColorButtonOnChanged as _uiColorButtonOnChanged, uiColorButtonSetColor as _uiColorButtonSetColor, uiComboboxAppend as _uiComboboxAppend, uiComboboxClear as _uiComboboxClear, uiComboboxDelete as _uiComboboxDelete, uiComboboxInsertAt as _uiComboboxInsertAt, uiComboboxNumItems as _uiComboboxNumItems, uiComboboxOnSelected as _uiComboboxOnSelected, uiComboboxSelected as _uiComboboxSelected,
+    uiComboboxSetSelected as _uiComboboxSetSelected, uiControlDestroy as _uiControlDestroy, uiControlDisable as _uiControlDisable, uiControlEnable as _uiControlEnable, uiControlEnabled as _uiControlEnabled, uiControlEnabledToUser as _uiControlEnabledToUser, uiControlHandle as _uiControlHandle, uiControlHide as _uiControlHide, uiControlParent as _uiControlParent,
+    uiControlSetParent as _uiControlSetParent, uiControlShow as _uiControlShow, uiControlToplevel as _uiControlToplevel, uiControlVerifySetParent as _uiControlVerifySetParent, uiControlVisible as _uiControlVisible, uiDateTimePickerOnChanged as _uiDateTimePickerOnChanged, uiDateTimePickerSetTime as _uiDateTimePickerSetTime, uiDateTimePickerTime as _uiDateTimePickerTime, uiDrawClip as _uiDrawClip, uiDrawFill as _uiDrawFill, uiDrawFreePath as _uiDrawFreePath, uiDrawFreeTextLayout as _uiDrawFreeTextLayout, uiDrawMatrixInvert as _uiDrawMatrixInvert, uiDrawMatrixInvertible as _uiDrawMatrixInvertible, uiDrawMatrixMultiply as _uiDrawMatrixMultiply, uiDrawMatrixRotate as _uiDrawMatrixRotate, uiDrawMatrixScale as _uiDrawMatrixScale, uiDrawMatrixSetIdentity as _uiDrawMatrixSetIdentity, uiDrawMatrixSkew as _uiDrawMatrixSkew, uiDrawMatrixTransformPoint as _uiDrawMatrixTransformPoint,
+    uiDrawMatrixTransformSize as _uiDrawMatrixTransformSize, uiDrawMatrixTranslate as _uiDrawMatrixTranslate, uiDrawNewPath as _uiDrawNewPath, uiDrawNewTextLayout as _uiDrawNewTextLayout, uiDrawPathAddRectangle as _uiDrawPathAddRectangle, uiDrawPathArcTo as _uiDrawPathArcTo,
+    uiDrawPathBezierTo as _uiDrawPathBezierTo,
+    uiDrawPathCloseFigure as _uiDrawPathCloseFigure, uiDrawPathEnd as _uiDrawPathEnd, uiDrawPathEnded as _uiDrawPathEnded, uiDrawPathLineTo as _uiDrawPathLineTo, uiDrawPathNewFigure as _uiDrawPathNewFigure,
+    uiDrawPathNewFigureWithArc as _uiDrawPathNewFigureWithArc, uiDrawRestore as _uiDrawRestore, uiDrawSave as _uiDrawSave, uiDrawStroke as _uiDrawStroke, uiDrawText as _uiDrawText,
+    uiDrawTextLayoutExtents as _uiDrawTextLayoutExtents, uiDrawTransform as _uiDrawTransform, uiEditableComboboxAppend as _uiEditableComboboxAppend, uiEditableComboboxOnChanged as _uiEditableComboboxOnChanged, uiEditableComboboxSetText as _uiEditableComboboxSetText, uiEditableComboboxText as _uiEditableComboboxText, uiEntryOnChanged as _uiEntryOnChanged,
+    uiEntryReadOnly as _uiEntryReadOnly,
+    uiEntrySetReadOnly as _uiEntrySetReadOnly, uiEntrySetText as _uiEntrySetText, uiEntryText as _uiEntryText, uiFontButtonFont as _uiFontButtonFont,
+    uiFontButtonOnChanged as _uiFontButtonOnChanged, uiFormAppend as _uiFormAppend, uiFormDelete as _uiFormDelete, uiFormNumChildren as _uiFormNumChildren, uiFormPadded as _uiFormPadded,
+    uiFormSetPadded as _uiFormSetPadded, uiFreeAttribute as _uiFreeAttribute, uiFreeAttributedString as _uiFreeAttributedString, uiFreeControl as _uiFreeControl, uiFreeFontButtonFont as _uiFreeFontButtonFont, uiFreeFontDescriptor as _uiFreeFontDescriptor, uiFreeImage as _uiFreeImage, uiFreeInitError as _uiFreeInitError, uiFreeOpenTypeFeatures as _uiFreeOpenTypeFeatures, uiFreeTableModel as _uiFreeTableModel, uiFreeTableSelection as _uiFreeTableSelection, uiFreeTableValue as _uiFreeTableValue, uiFreeText as _uiFreeText, uiGridAppend as _uiGridAppend,
+    uiGridInsertAt as _uiGridInsertAt,
+    uiGridPadded as _uiGridPadded,
+    uiGridSetPadded as _uiGridSetPadded, uiGroupMargined as _uiGroupMargined, uiGroupSetChild as _uiGroupSetChild, uiGroupSetMargined as _uiGroupSetMargined, uiGroupSetTitle as _uiGroupSetTitle, uiGroupTitle as _uiGroupTitle, uiImageAppend as _uiImageAppend, uiInit as _uiInit, uiLabelSetText as _uiLabelSetText, uiLabelText as _uiLabelText, uiLoadControlFont as _uiLoadControlFont, uiMain as _uiMain, uiMainStep as _uiMainStep, uiMainSteps as _uiMainSteps, uiMenuAppendAboutItem as _uiMenuAppendAboutItem, uiMenuAppendCheckItem as _uiMenuAppendCheckItem, uiMenuAppendItem as _uiMenuAppendItem, uiMenuAppendPreferencesItem as _uiMenuAppendPreferencesItem, uiMenuAppendQuitItem as _uiMenuAppendQuitItem, uiMenuAppendSeparator as _uiMenuAppendSeparator, uiMenuItemChecked as _uiMenuItemChecked, uiMenuItemDisable as _uiMenuItemDisable, uiMenuItemEnable as _uiMenuItemEnable, uiMenuItemOnClicked as _uiMenuItemOnClicked, uiMenuItemSetChecked as _uiMenuItemSetChecked, uiMsgBox as _uiMsgBox,
+    uiMsgBoxError as _uiMsgBoxError, uiMultilineEntryAppend as _uiMultilineEntryAppend,
+    uiMultilineEntryOnChanged as _uiMultilineEntryOnChanged,
+    uiMultilineEntryReadOnly as _uiMultilineEntryReadOnly,
+    uiMultilineEntrySetReadOnly as _uiMultilineEntrySetReadOnly, uiMultilineEntrySetText as _uiMultilineEntrySetText, uiMultilineEntryText as _uiMultilineEntryText, uiNewArea as _uiNewArea, uiNewAttributedString as _uiNewAttributedString, uiNewBackgroundAttribute as _uiNewBackgroundAttribute, uiNewButton as _uiNewButton, uiNewCheckbox as _uiNewCheckbox, uiNewColorAttribute as _uiNewColorAttribute, uiNewColorButton as _uiNewColorButton, uiNewCombobox as _uiNewCombobox, uiNewDatePicker as _uiNewDatePicker, uiNewDateTimePicker as _uiNewDateTimePicker, uiNewEditableCombobox as _uiNewEditableCombobox, uiNewEntry as _uiNewEntry, uiNewFamilyAttribute as _uiNewFamilyAttribute, uiNewFeaturesAttribute as _uiNewFeaturesAttribute, uiNewFontButton as _uiNewFontButton, uiNewForm as _uiNewForm, uiNewGrid as _uiNewGrid, uiNewGroup as _uiNewGroup, uiNewHorizontalBox as _uiNewHorizontalBox, uiNewHorizontalSeparator as _uiNewHorizontalSeparator, uiNewImage as _uiNewImage, uiNewItalicAttribute as _uiNewItalicAttribute, uiNewLabel as _uiNewLabel, uiNewMenu as _uiNewMenu, uiNewMultilineEntry as _uiNewMultilineEntry,
+    uiNewNonWrappingMultilineEntry as _uiNewNonWrappingMultilineEntry, uiNewOpenTypeFeatures as _uiNewOpenTypeFeatures, uiNewPasswordEntry as _uiNewPasswordEntry, uiNewProgressBar as _uiNewProgressBar, uiNewRadioButtons as _uiNewRadioButtons, uiNewScrollingArea as _uiNewScrollingArea, uiNewSearchEntry as _uiNewSearchEntry, uiNewSizeAttribute as _uiNewSizeAttribute, uiNewSlider as _uiNewSlider, uiNewSpinbox as _uiNewSpinbox, uiNewStretchAttribute as _uiNewStretchAttribute, uiNewTab as _uiNewTab, uiNewTable as _uiNewTable, uiNewTableModel as _uiNewTableModel, uiNewTableValueColor as _uiNewTableValueColor, uiNewTableValueImage as _uiNewTableValueImage, uiNewTableValueInt as _uiNewTableValueInt, uiNewTableValueString as _uiNewTableValueString, uiNewTimePicker as _uiNewTimePicker, uiNewUnderlineAttribute as _uiNewUnderlineAttribute, uiNewUnderlineColorAttribute as _uiNewUnderlineColorAttribute, uiNewVerticalBox as _uiNewVerticalBox, uiNewVerticalSeparator as _uiNewVerticalSeparator, uiNewWeightAttribute as _uiNewWeightAttribute, uiNewWindow as _uiNewWindow, uiOnShouldQuit as _uiOnShouldQuit, uiOpenFile as _uiOpenFile,
+    uiOpenFolder as _uiOpenFolder, uiOpenTypeFeaturesAdd as _uiOpenTypeFeaturesAdd, uiOpenTypeFeaturesClone as _uiOpenTypeFeaturesClone, uiOpenTypeFeaturesForEach as _uiOpenTypeFeaturesForEach, uiOpenTypeFeaturesGet as _uiOpenTypeFeaturesGet, uiOpenTypeFeaturesRemove as _uiOpenTypeFeaturesRemove, uiProgressBarSetValue as _uiProgressBarSetValue, uiProgressBarValue as _uiProgressBarValue, uiQueueMain as _uiQueueMain, uiQuit as _uiQuit, uiRadioButtonsAppend as _uiRadioButtonsAppend, uiRadioButtonsOnSelected as _uiRadioButtonsOnSelected, uiRadioButtonsSelected as _uiRadioButtonsSelected,
+    uiRadioButtonsSetSelected as _uiRadioButtonsSetSelected, uiSaveFile as _uiSaveFile, uiSliderHasToolTip as _uiSliderHasToolTip, uiSliderOnChanged as _uiSliderOnChanged,
+    uiSliderOnReleased as _uiSliderOnReleased, uiSliderSetHasToolTip as _uiSliderSetHasToolTip, uiSliderSetRange as _uiSliderSetRange, uiSliderSetValue as _uiSliderSetValue, uiSliderValue as _uiSliderValue, uiSpinboxOnChanged as _uiSpinboxOnChanged, uiSpinboxSetValue as _uiSpinboxSetValue, uiSpinboxValue as _uiSpinboxValue, uiTabAppend as _uiTabAppend, uiTabDelete as _uiTabDelete, uiTabInsertAt as _uiTabInsertAt, uiTableAppendButtonColumn as _uiTableAppendButtonColumn, uiTableAppendCheckboxColumn as _uiTableAppendCheckboxColumn,
+    uiTableAppendCheckboxTextColumn as _uiTableAppendCheckboxTextColumn, uiTableAppendImageColumn as _uiTableAppendImageColumn, uiTableAppendImageTextColumn as _uiTableAppendImageTextColumn, uiTableAppendProgressBarColumn as _uiTableAppendProgressBarColumn, uiTableAppendTextColumn as _uiTableAppendTextColumn, uiTableColumnSetWidth as _uiTableColumnSetWidth, uiTableColumnWidth as _uiTableColumnWidth, uiTableGetSelection as _uiTableGetSelection, uiTableGetSelectionMode as _uiTableGetSelectionMode, uiTableHeaderOnClicked as _uiTableHeaderOnClicked, uiTableHeaderSetSortIndicator as _uiTableHeaderSetSortIndicator, uiTableHeaderSetVisible as _uiTableHeaderSetVisible, uiTableHeaderSortIndicator as _uiTableHeaderSortIndicator, uiTableHeaderVisible as _uiTableHeaderVisible, uiTableModelRowChanged as _uiTableModelRowChanged,
+    uiTableModelRowDeleted as _uiTableModelRowDeleted, uiTableModelRowInserted as _uiTableModelRowInserted, uiTableOnRowClicked as _uiTableOnRowClicked,
+    uiTableOnRowDoubleClicked as _uiTableOnRowDoubleClicked, uiTableOnSelectionChanged as _uiTableOnSelectionChanged, uiTableSetSelection as _uiTableSetSelection, uiTableSetSelectionMode as _uiTableSetSelectionMode, uiTableValueColor as _uiTableValueColor, uiTableValueGetType as _uiTableValueGetType, uiTableValueImage as _uiTableValueImage, uiTableValueInt as _uiTableValueInt, uiTableValueString as _uiTableValueString, uiTabMargined as _uiTabMargined, uiTabNumPages as _uiTabNumPages, uiTabSetMargined as _uiTabSetMargined, uiTimer as _uiTimer, uiUninit as _uiUninit, uiUserBugCannotSetParentOnToplevel as _uiUserBugCannotSetParentOnToplevel, uiWindowBorderless as _uiWindowBorderless, uiWindowContentSize as _uiWindowContentSize, uiWindowFocused as _uiWindowFocused, uiWindowFullscreen as _uiWindowFullscreen, uiWindowMargined as _uiWindowMargined, uiWindowOnClosing as _uiWindowOnClosing, uiWindowOnContentSizeChanged as _uiWindowOnContentSizeChanged, uiWindowOnFocusChanged as _uiWindowOnFocusChanged, uiWindowOnPositionChanged as _uiWindowOnPositionChanged, uiWindowPosition as _uiWindowPosition, uiWindowResizeable as _uiWindowResizeable, uiWindowSetBorderless as _uiWindowSetBorderless,
+    uiWindowSetChild as _uiWindowSetChild, uiWindowSetContentSize as _uiWindowSetContentSize, uiWindowSetFullscreen as _uiWindowSetFullscreen, uiWindowSetMargined as _uiWindowSetMargined, uiWindowSetPosition as _uiWindowSetPosition, uiWindowSetResizeable as _uiWindowSetResizeable, uiWindowSetTitle as _uiWindowSetTitle, uiWindowTitle as _uiWindowTitle
+};

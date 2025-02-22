@@ -46,7 +46,7 @@ class libui {
             returns: "int",
             args: ["ptr"],
             threadsafe: false
-        }).ptr, null);
+        }).ptr, 0);
     }
 
     static timer(milliseconds, cb) {

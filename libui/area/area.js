@@ -37,7 +37,6 @@ class area extends control {
                     areawidth: read.f64(event, 2 * 8),
                     areaHeight: read.f64(event, 3 * 8),
                     down: read.i32(event, 4 * 8),
-                    //up: read.i32(event, 5 * 8),
                     up: read.i32(event, (4 * 8) + (4 * 1)),
                     count: read.i32(event, (4 * 8) + (4 * 2)),
                     modifiers: read.ptr(event, 7 * 8),
@@ -58,8 +57,8 @@ class area extends control {
                 threadsafe: false
             }).ptr),
             //DragBroken
-            BigInt(new JSCallback(function (tableModelHandler, tableModel, row, column) {
-                //console.log("DragBroken");
+            BigInt(new JSCallback(function (tableModelHandler, tableModel) {
+                dragBroken(row, column);
             }, {
                 args: ["ptr", "ptr"],
                 returns: "i32",

@@ -276,12 +276,10 @@ class table extends control {
     set data(value) {
         for (let index = 0; index < this._data.length; index++) {
             _uiTableModelRowDeleted(this._tableModel, 0);
-            console.log("_uiTableModelRowDeleted");
         };
         this._data = value;
         for (let index = 0; index < this._data.length; index++) {
             _uiTableModelRowInserted(this._tableModel, index);
-            console.log("_uiTableModelRowInserted");
         };
     }
 

@@ -101,7 +101,7 @@ const a = new area(function (params) {
 }, function (params) {
     console.log(params);
 }, function (params) {
-    //console.log(params);
+    //console.log(...arguments);
 }, function () { },
 function (params) {
     console.log(params);
